@@ -15,6 +15,10 @@
 
 ---
 
+![Landing](public/landing.png)
+
+---
+
 # ⚓ Overview
 
 GitGraph is a **high-end analytics platform for GitHub repositories** designed to help developers and teams understand the health of their projects.
