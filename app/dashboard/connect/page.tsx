@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { FaGithub, FaCheck, FaPlus, FaSearch, FaInfoCircle } from "react-icons/fa";
+import { FaGithub, FaCheck, FaPlus, FaSearch } from "react-icons/fa";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { useProjects } from "@/lib/hooks/useProjects";
 import Link from "next/link";
 
 export default function ConnectPage() {
+  const { data: projects, isLoading: projectsLoading } = useProjects();
   const [repos, setRepos] = useState<any[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,16 +23,48 @@ export default function ConnectPage() {
       .catch(() => setLoading(false));
   }, []);
 
+  // Filtra de forma eficiente os repositórios que já possuem projetos conectados
+  const connectedNames = useMemo(() => {
+    if (!projects) return new Set<string>();
+    return new Set(projects.map(p => p.fullName.toLowerCase()));
+  }, [projects]);
+
+  // Filtra por conectividade e pela barra de busca
+  const filteredRepos = useMemo(() => {
+    return repos
+      .filter(r => !connectedNames.has(r.full_name.toLowerCase()))
+      .filter(r => r.name.toLowerCase().includes(search.toLowerCase()));
+  }, [repos, connectedNames, search]);
+
+  const allFilteredSelected = useMemo(() => {
+    if (filteredRepos.length === 0) return false;
+    return filteredRepos.every(r => selected.includes(r.id));
+  }, [filteredRepos, selected]);
+
   const toggle = (id: string) => {
     setSelected(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
   };
 
+  // Seleciona ou desmarca apenas os repositórios visíveis conforme o filtro ativo
+  const handleSelectAllFiltered = () => {
+    const filteredIds = filteredRepos.map(r => r.id);
+    if (allFilteredSelected) {
+      setSelected(prev => prev.filter(id => !filteredIds.includes(id)));
+    } else {
+      setSelected(prev => {
+        const union = new Set([...prev, ...filteredIds]);
+        return Array.from(union);
+      });
+    }
+  };
+
   const connect = async () => {
     await Promise.all(
       selected.map(id => {
         const repo = repos.find(r => r.id == id);
+        if (!repo) return Promise.resolve();
         return fetch("/api/projects", {
           method: "POST",
           body: JSON.stringify({
@@ -45,18 +79,12 @@ export default function ConnectPage() {
     window.location.href = "/dashboard";
   };
 
-  const filteredRepos = useMemo(() => {
-    return repos.filter(r =>
-      r.name.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [repos, search]);
-
-  // Estatísticas de seleção
+  const isLoading = loading || projectsLoading;
   const selectedCount = selected.length;
   const totalCount = filteredRepos.length;
 
   return (
-    <div className="pt-14 pb-20 space-y-10 animate-in fade-in duration-500">
+    <div className="pt-10 md:pt-14 pb-16 md:pb-20 space-y-8 animate-in fade-in duration-500">
 
       {/* Header com título e info */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
@@ -68,7 +96,7 @@ export default function ConnectPage() {
             <InfoTooltip text="Select GitHub repositories to import as nodes in your dashboard." />
           </div>
           <p className="text-zinc-600 text-sm font-mono">
-            {totalCount} repositories available
+            {totalCount} repositories available to connect
           </p>
         </div>
 
@@ -80,13 +108,13 @@ export default function ConnectPage() {
             placeholder="Filter repositories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-64 bg-zinc-900/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-[#57e071]/30 focus:border-[#57e071]/30 focus:outline-none transition-all backdrop-blur-sm"
+            className="w-full sm:w-64 bg-zinc-900/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-[#57e071]/30 focus:border-[#57e071]/30 focus:outline-none transition-all backdrop-blur-sm"
           />
         </div>
       </header>
 
       {/* Loading skeleton */}
-      {loading && (
+      {isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="h-32 bg-zinc-900/50 rounded-2xl border border-zinc-800/50 animate-pulse" />
@@ -95,16 +123,31 @@ export default function ConnectPage() {
       )}
 
       {/* Empty state */}
-      {!loading && filteredRepos.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/20 backdrop-blur-sm">
+      {!isLoading && filteredRepos.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/20 backdrop-blur-sm text-center px-4">
           <FaGithub className="text-4xl text-zinc-700 mb-4" />
-          <p className="text-zinc-500 text-lg">No repositories found</p>
-          <p className="text-zinc-700 text-sm mt-2">Try adjusting your search</p>
+          <p className="text-zinc-500 text-lg">No unconnected repositories found</p>
+          <p className="text-zinc-700 text-sm mt-2">All your repos might already be synced or no search results matched.</p>
+        </div>
+      )}
+
+      {/* Botão de Controle de Seleção em lote */}
+      {!isLoading && filteredRepos.length > 0 && (
+        <div className="flex items-center justify-between pb-2">
+          <button
+            onClick={handleSelectAllFiltered}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-zinc-800 hover:border-zinc-700 hover:text-white rounded-lg bg-zinc-900/40 text-xs font-mono text-zinc-500 transition-colors cursor-pointer"
+          >
+            {allFilteredSelected ? "Deselect All Visible" : "Select All Visibles"}
+          </button>
+          <span className="text-xs text-zinc-600 font-mono">
+            Showing {filteredRepos.length} results
+          </span>
         </div>
       )}
 
       {/* Grid de repositórios */}
-      {!loading && filteredRepos.length > 0 && (
+      {!isLoading && filteredRepos.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredRepos.map((repo) => {
             const isSelected = selected.includes(repo.id);
@@ -131,7 +174,7 @@ export default function ConnectPage() {
                 )}
 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 flex items-center justify-center border border-zinc-600/50">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 flex items-center justify-center border border-zinc-600/50 shrink-0">
                     <FaGithub className="text-zinc-300 text-lg" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -154,20 +197,23 @@ export default function ConnectPage() {
         </div>
       )}
 
-      {/* Barra de seleção e botão de conectar */}
-      {!loading && filteredRepos.length > 0 && (
-        <div className="sticky bottom-6 mt-8 flex justify-center">
-          <div className="bg-zinc-900/90 backdrop-blur-md border border-zinc-800/50 rounded-2xl shadow-2xl p-4 flex items-center gap-6">
-            <div className="text-sm text-zinc-400">
-              <span className="text-white font-semibold">{selectedCount}</span> repositories selected
+      {/* Barra de seleção e botão de conectar flutuante */}
+      {!isLoading && filteredRepos.length > 0 && (
+        <div className="sticky bottom-6 mt-8 flex justify-center z-10">
+          <div className="bg-zinc-900/90 backdrop-blur-md border border-zinc-800/50 rounded-2xl shadow-2xl p-3 px-4 flex items-center gap-4 max-w-full">
+            <div className="text-xs sm:text-sm text-zinc-400 shrink-0 font-medium select-none">
+              <span className="text-white font-semibold">{selectedCount}</span> selected
             </div>
+            
+            <div className="w-px h-5 bg-white/[0.08]" />
+
             <button
               disabled={selectedCount === 0}
               onClick={connect}
-              className="group relative inline-flex items-center gap-2 bg-gradient-to-r from-[#57e071] to-[#3fa855] rounded-xl px-6 py-3 text-black font-semibold hover:opacity-90 transition-all duration-300 shadow-lg shadow-[#57e071]/20 hover:shadow-xl hover:shadow-[#57e071]/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none"
+              className="group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#57e071] to-[#3fa855] rounded-xl px-5 py-2.5 text-black font-semibold hover:opacity-90 transition-all duration-300 shadow-lg shadow-[#57e071]/20 hover:shadow-xl hover:shadow-[#57e071]/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none text-xs sm:text-sm cursor-pointer"
             >
-              <FaPlus className="transition-transform group-hover:rotate-90" />
-              Connect Selected
+              <FaPlus className="transition-transform group-hover:rotate-90 flex-shrink-0" />
+              <span>Connect Selected</span>
             </button>
           </div>
         </div>
@@ -176,7 +222,7 @@ export default function ConnectPage() {
   );
 }
 
-/* --- Tooltip Component (reutilizado) --- */
+/* --- Tooltip Component --- */
 function InfoTooltip({ text, className }: { text: string; className?: string }) {
   return (
     <div className={`relative group cursor-pointer ${className || ""}`}>
