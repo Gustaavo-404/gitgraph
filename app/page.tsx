@@ -10,6 +10,7 @@ import { ScrollTypographySection } from "@/components/ScrollTypographySection";
 import { SaaSJourneySection } from "@/components/SaaSJourneySection";
 import { FinalCTASection } from "@/components/FinalCTASection";
 import { Footer } from "@/components/Footer";
+import DevIndicatorRemover from "@/components/DevIndicatorRemover";
 
 export const metadata: Metadata = {
   title: "GitGraph – Understand your codebase",
@@ -20,6 +21,7 @@ export default function Home() {
 
   return (
     <main className="bg-black font-sans">
+      <DevIndicatorRemover />
       <Header />
       <Hero />
       <TechCarousel />

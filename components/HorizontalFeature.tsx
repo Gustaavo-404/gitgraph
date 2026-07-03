@@ -159,10 +159,10 @@ export function HorizontalFeature() {
               Real-time GitHub <span className="italic">Analytics</span>
             </h2>
             <p className="text-zinc-400 text-lg leading-relaxed max-w-lg border-l border-zinc-800 pl-6">
-              Visualize commits, issues and pull requests with live data straight from GitHub 
+              Visualize commits, issues and pull requests with live data straight from GitHub
               at a stable <span className="text-white font-mono">{syncRate}%</span> sync rate.
             </p>
-            
+
             <div className="mt-12 flex items-center gap-10">
               <div className="feature-card flex flex-col gap-2">
                 <Activity className="w-5 h-5 text-[#57e071]" />
@@ -194,7 +194,7 @@ export function HorizontalFeature() {
               Intelligent Code <span className="italic">Insights</span>
             </h2>
             <p className="text-zinc-400 text-lg leading-relaxed max-w-lg border-l border-zinc-800 pl-6">
-              Detect patterns and performance risks automatically. 
+              Detect patterns and performance risks automatically.
               Current threats detected: <span className="text-red-500 font-mono">{risks}</span>
             </p>
             <div className="mt-12 flex items-center gap-10">
@@ -228,7 +228,7 @@ export function HorizontalFeature() {
               Engineering <span className="italic">Reports</span>
             </h2>
             <p className="text-zinc-400 text-lg leading-relaxed max-w-lg border-l border-zinc-800 pl-6">
-              Export technical dashboards ready for stakeholders with 
+              Export technical dashboards ready for stakeholders with
               high-fidelity custom time ranges.
             </p>
             <div className="mt-12 flex items-center gap-10">
