@@ -68,13 +68,13 @@ export function DashboardHeader() {
       fixed top-0 left-0 right-0
       h-14 z-[50]
       border-b border-white/[0.08]
-      px-6 flex items-center justify-between
+      px-4 md:px-6 flex items-center justify-between
       bg-black/70 backdrop-blur-xl
       supports-[backdrop-filter]:bg-black/80
     ">
-      {/* LEFT: Logo + Breadcrumb */}
-      <div className="flex items-center gap-5">
-        <Link href="/dashboard" className="relative group cursor-pointer">
+      {/* LEFT: Logo + Breadcrumb Responsivo */}
+      <div className="flex items-center gap-3 md:gap-5 min-w-0 flex-1 mr-2">
+        <Link href="/dashboard" className="relative group cursor-pointer shrink-0">
           <div className="absolute -inset-2" />
           <Image 
             src="/logo.png" 
@@ -85,24 +85,27 @@ export function DashboardHeader() {
           />
         </Link>
 
-        <nav className="flex items-center gap-3 text-[13px] font-medium tracking-tight">
+        <nav className="flex items-center gap-1.5 md:gap-3 text-[13px] font-medium tracking-tight min-w-0">
           <span className="text-zinc-700 font-light select-none">/</span>
           
+          {/* Nome do usuário ocultado em telas pequenas para economizar espaço */}
           <Link 
             href="/dashboard"
-            className="text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="hidden sm:inline text-zinc-500 hover:text-zinc-300 transition-colors truncate"
           >
             {user?.username ?? "system"}
           </Link>
 
-          <span className="text-zinc-700 font-light select-none">/</span>
+          <span className="hidden sm:inline text-zinc-700 font-light select-none">/</span>
 
+          {/* O console só é exibido de forma fixa se o usuário estiver no Dashboard raiz. 
+              Se estiver dentro de um repositório, ele é ocultado no mobile para dar espaço ao nome do projeto. */}
           <Link 
             href="/dashboard"
-            className={`transition-colors ${
+            className={`transition-colors truncate ${
               isDashboardRoot
-                ? "text-white font-semibold"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? "text-white font-semibold inline"
+                : "hidden sm:inline text-zinc-500 hover:text-zinc-300"
             }`}
           >
             console
@@ -113,7 +116,7 @@ export function DashboardHeader() {
               <span className="text-zinc-700 font-light select-none">/</span>
               <Link 
                 href={`/dashboard/${projectId}`}
-                className={`transition-colors ${
+                className={`transition-colors truncate max-w-[100px] sm:max-w-[200px] ${
                   !isReports
                     ? "text-white font-semibold"
                     : "text-zinc-500 hover:text-zinc-300"
@@ -129,7 +132,7 @@ export function DashboardHeader() {
               <span className="text-zinc-700 font-light select-none">/</span>
               <Link 
                 href={`/dashboard/${projectId}/reports`}
-                className="text-white font-semibold transition-colors"
+                className="text-white font-semibold transition-colors shrink-0"
               >
                 reports
               </Link>
@@ -139,8 +142,8 @@ export function DashboardHeader() {
       </div>
 
       {/* RIGHT: Status + Help + User */}
-      <div className="flex items-center gap-5">
-        {/* Status Monitor */}
+      <div className="flex items-center gap-3 md:gap-5 shrink-0">
+        {/* Status Monitor (já era configurado com 'hidden sm:flex') */}
         <div className="
           hidden sm:flex items-center gap-2
           px-2.5 py-1 rounded-md
@@ -222,7 +225,7 @@ export function DashboardHeader() {
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="relative group focus:outline-none"
+            className="relative group focus:outline-none flex items-center"
           >
             <div className="absolute -inset-0.5 bg-gradient-to-tr rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity" />
             {user?.image ? (
@@ -234,7 +237,8 @@ export function DashboardHeader() {
                 className="relative rounded-lg border border-white/10 object-cover"
               />
             ) : (
-              <div className="relative w-7.5 h-7.5 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center text-[10px] font-bold text-emerald-500">
+              // Substituído w-7.5 h-7.5 para w-[30px] h-[30px] garantindo consistência com o tamanho da imagem do Next.js
+              <div className="relative w-[30px] h-[30px] rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center text-[10px] font-bold text-emerald-500">
                 {user?.username?.charAt(0).toUpperCase() ?? "U"}
               </div>
             )}
@@ -244,8 +248,8 @@ export function DashboardHeader() {
           {isProfileOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="p-4 border-b border-zinc-800">
-                <p className="text-sm font-medium text-white">{user?.username ?? "User"}</p>
-                <p className="text-xs text-zinc-500 mt-0.5">{user?.email ?? "user@example.com"}</p>
+                <p className="text-sm font-medium text-white truncate">{user?.username ?? "User"}</p>
+                <p className="text-xs text-zinc-500 mt-0.5 truncate">{user?.email ?? "user@example.com"}</p>
               </div>
 
               <div className="p-2">
