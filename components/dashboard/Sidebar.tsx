@@ -5,7 +5,6 @@ import { FaPlug, FaCog, FaDatabase, FaGithub, FaLink, FaFileExport } from "react
 import { LuPanelLeftClose, LuPanelLeftOpen, LuLayoutDashboard } from "react-icons/lu";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-// Importados ChevronRight e ChevronLeft do lucide-react para as setas indicativas
 import { Command, Search, HelpCircle, BookOpen, LifeBuoy, History, Keyboard, User, Settings as SettingsIcon, ChevronRight, ChevronLeft } from "lucide-react";
 import { useProjects } from "@/lib/hooks/useProjects";
 
@@ -28,7 +27,6 @@ const staticSearchItems = [
   { title: "Dashboard", href: "/dashboard", icon: iconMap.dashboard, keywords: ["home", "main"] },
   { title: "Nodes Manager", href: "/dashboard/nodes", icon: iconMap.nodes, keywords: ["nodes", "database"] },
   { title: "Connect Repo", href: "/dashboard/connect", icon: iconMap.connect, keywords: ["github", "connect", "repo"] },
-  { title: "Settings", href: "/dashboard/settings", icon: iconMap.settings, keywords: ["preferences", "config"] },
   { title: "Profile", href: "/profile", icon: iconMap.profile, keywords: ["user", "account"] },
   { title: "Documentation", href: "/docs", icon: iconMap.documentation, keywords: ["docs", "guide"] },
   { title: "Support", href: "/support", icon: iconMap.support, keywords: ["help", "contact"] },
@@ -77,12 +75,17 @@ export function Sidebar() {
         'n': '/dashboard/nodes',
         'g': '/dashboard/connect',
         'a': '/dashboard/connect-api',
-        's': '/dashboard/settings',
       };
 
       if (routes[key]) {
         e.preventDefault();
         router.push(routes[key]);
+      }
+
+      // Atalho de configurações abre o modal unificado global
+      if (key === 's') {
+        e.preventDefault();
+        window.dispatchEvent(new Event("open-settings-modal"));
       }
 
       if ((e.metaKey || e.ctrlKey) && key === 'k') {
@@ -164,9 +167,38 @@ export function Sidebar() {
     }
   };
 
-  const item = (href: string, label: string, icon: any, shortcut?: string) => {
+  // Componente de Item Unificado com suporte a Link ou Botão customizado (onClick)
+  const item = (href: string, label: string, icon: any, shortcut?: string, onClick?: () => void) => {
     const active = pathname === href;
     const Icon = icon;
+
+    // Se houver manipulador de clique customizado, renderiza como elemento <button>
+    if (onClick) {
+      return (
+        <button
+          onClick={onClick}
+          className={`
+            w-full group relative flex items-center gap-3 px-3 py-2 rounded-md text-[13px] transition-all duration-200 text-left cursor-pointer
+            ${active ? "bg-white/[0.06] text-white" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]"}
+            ${collapsed ? "justify-center" : ""}
+          `}
+          title={collapsed ? label : undefined}
+        >
+          <Icon className={`text-sm shrink-0 ${active ? "text-emerald-500" : "group-hover:text-zinc-300"}`} />
+
+          {!collapsed && (
+            <div className="flex items-center justify-between w-full">
+              <span>{label}</span>
+              {shortcut && (
+                <span className="text-[10px] text-zinc-700 font-mono group-hover:text-zinc-500 transition-colors">
+                  {shortcut}
+                </span>
+              )}
+            </div>
+          )}
+        </button>
+      );
+    }
 
     return (
       <Link
@@ -366,7 +398,10 @@ export function Sidebar() {
         {/* FOOTER */}
         <div className="flex flex-col gap-4 mt-auto">
           <nav className="flex flex-col gap-1">
-            {item("/dashboard/settings", "Settings", FaCog, "S")}
+            {/* O item Settings agora dispara o modal global em vez de navegar */}
+            {item("#", "Settings", FaCog, "S", () => {
+              window.dispatchEvent(new Event("open-settings-modal"));
+            })}
           </nav>
 
           <button

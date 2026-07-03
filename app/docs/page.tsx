@@ -91,6 +91,23 @@ export default function DocsPage() {
     }
   }, [isSearchOpen]);
 
+  // Altera a categoria ativa baseado no parâmetro ?cat= na URL ao carregar a página
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const cat = params.get("cat") as CategoryType | null;
+      if (cat && CHAPTERS_MAP[cat]) {
+        setActiveCategory(cat);
+        const firstChapterId = CHAPTERS_MAP[cat][0]?.id;
+        if (firstChapterId) {
+          setTimeout(() => {
+            scrollToSection(firstChapterId);
+          }, 150);
+        }
+      }
+    }
+  }, []);
+
   // Monitora qual seção está visível para atualizar o menu lateral
   useEffect(() => {
     if (observer.current) observer.current.disconnect();

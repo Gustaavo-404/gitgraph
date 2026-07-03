@@ -10,7 +10,6 @@ import {
   FaCodeBranch,
   FaBug,
   FaEye,
-  FaTerminal,
   FaGithub,
   FaSearch,
   FaDownload,
@@ -33,18 +32,48 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [openExportMenu, setOpenExportMenu] = useState(false);
+  
+  // Estados para filtros e visualização
   const [commitPeriod, setCommitPeriod] = useState<number>(0);
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  
   const [commitData, setCommitData] = useState<CommitData[]>([]);
   const [languageData, setLanguageData] = useState<LanguageData>({});
   const [projectLanguages, setProjectLanguages] = useState<Record<string, string>>({});
-
-  // Estados para filtros e visualização
   const [languageFilter, setLanguageFilter] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   interface LanguageDataType {
     [key: string]: number;
   }
+
+  // Sincroniza as preferências do usuário salvas no localStorage e ouve atualizações globais
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // 1. Carrega preferências salvas inicialmente
+      const savedView = localStorage.getItem("pref-view-mode");
+      if (savedView === "table" || savedView === "cards") {
+        setViewMode(savedView);
+      }
+
+      const savedPeriod = localStorage.getItem("pref-commit-period");
+      if (savedPeriod !== null) {
+        setCommitPeriod(Number(savedPeriod));
+      }
+
+      // 2. Escuta mudanças em tempo real feitas a partir do modal global
+      const handleSettingsUpdate = () => {
+        const updatedView = localStorage.getItem("pref-view-mode") || "cards";
+        const updatedPeriod = Number(localStorage.getItem("pref-commit-period") || "0");
+        setViewMode(updatedView as "cards" | "table");
+        setCommitPeriod(updatedPeriod);
+      };
+
+      window.addEventListener("settings-updated", handleSettingsUpdate);
+      return () => {
+        window.removeEventListener("settings-updated", handleSettingsUpdate);
+      };
+    }
+  }, []);
 
   useEffect(() => {
     if (!projects || projects.length === 0) return;
@@ -134,6 +163,20 @@ export default function Dashboard() {
       return matchesSearch && matchesLang;
     }) || [];
   }, [projects, search, languageFilter, projectLanguages]);
+
+  // Manipuladores de alteração de estado direta na UI do Dashboard (Salvando no LocalStorage)
+  const toggleViewMode = () => {
+    const nextMode = viewMode === "cards" ? "table" : "cards";
+    setViewMode(nextMode);
+    localStorage.setItem("pref-view-mode", nextMode);
+    window.dispatchEvent(new Event("settings-updated"));
+  };
+
+  const handlePeriodChange = (days: number) => {
+    setCommitPeriod(days);
+    localStorage.setItem("pref-commit-period", String(days));
+    window.dispatchEvent(new Event("settings-updated"));
+  };
 
   const exportData = (format: "csv" | "json" | "pdf") => {
     const dataToExport = filteredProjects.map(p => {
@@ -281,9 +324,10 @@ export default function Dashboard() {
                 ))}
               </select>
 
+              {/* Botão viewMode com Toggle atualizado para sincronizar no localStorage */}
               <button
-                onClick={() => setViewMode(v => v === "cards" ? "table" : "cards")}
-                className="p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-colors flex-shrink-0"
+                onClick={toggleViewMode}
+                className="p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-colors flex-shrink-0 cursor-pointer"
                 aria-label="Toggle View Mode"
               >
                 {viewMode === "cards" ? <FaTable /> : <FaThLarge />}
@@ -292,7 +336,7 @@ export default function Dashboard() {
               <div className="relative flex-shrink-0">
                 <button
                   onClick={() => setOpenExportMenu(!openExportMenu)}
-                  className="group relative inline-flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 hover:border-[#57e071]/30 rounded-xl px-4 py-2.5 text-zinc-400 hover:text-white transition-all duration-300"
+                  className="group relative inline-flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 hover:border-[#57e071]/30 rounded-xl px-4 py-2.5 text-zinc-400 hover:text-white transition-all duration-300 cursor-pointer"
                 >
                   <FaDownload className="text-sm group-hover:scale-110 transition-transform" />
                   <span className="text-sm hidden xs:inline">Export</span>
@@ -308,7 +352,7 @@ export default function Dashboard() {
                       <div className="py-1">
                         <button
                           onClick={() => exportData("csv")}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-colors group"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-colors group cursor-pointer"
                         >
                           <div className="w-6 h-6 rounded-lg bg-[#57e071]/10 flex items-center justify-center group-hover:bg-[#57e071]/20 transition-colors">
                             <FaFileCsv className="text-[#57e071] text-xs" />
@@ -319,7 +363,7 @@ export default function Dashboard() {
                         <div className="border-t border-zinc-800/50 my-1" />
                         <button
                           onClick={() => exportData("json")}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-colors group"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-colors group cursor-pointer"
                         >
                           <div className="w-6 h-6 rounded-lg bg-[#57e071]/10 flex items-center justify-center group-hover:bg-[#57e071]/20 transition-colors">
                             <FaFileCode className="text-[#57e071] text-xs" />
@@ -389,7 +433,7 @@ export default function Dashboard() {
                       e.stopPropagation();
                       setOpenMenu(openMenu === p.id ? null : p.id);
                     }}
-                    className="absolute top-5 right-5 text-zinc-500 hover:text-white transition p-1 rounded-lg hover:bg-zinc-800 z-10"
+                    className="absolute top-5 right-5 text-zinc-500 hover:text-white transition p-1 rounded-lg hover:bg-zinc-800 z-10 cursor-pointer"
                   >
                     <FaEllipsisV className="w-4 h-4" />
                   </button>
@@ -398,7 +442,7 @@ export default function Dashboard() {
                     <div className="absolute top-12 right-5 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl w-44 z-25 animate-in fade-in zoom-in duration-200 overflow-hidden">
                       <button
                         onClick={() => handleDelete(p.id)}
-                        className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-400/10 transition-colors"
+                        className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-400/10 transition-colors cursor-pointer"
                       >
                         TERMINATE NODE
                       </button>
@@ -494,7 +538,7 @@ export default function Dashboard() {
                         <td className="px-6 py-4 text-right">
                           <button
                             onClick={() => handleDelete(p.id)}
-                            className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 text-xs font-medium transition-colors"
+                            className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 text-xs font-medium transition-colors cursor-pointer"
                           >
                             Delete <FaTrash className="w-3 h-3" />
                           </button>
@@ -530,8 +574,8 @@ export default function Dashboard() {
             ].map((opt) => (
               <button
                 key={opt.label}
-                onClick={() => setCommitPeriod(opt.days)}
-                className={`px-4 py-2 text-xs font-medium rounded-lg transition-all ${commitPeriod === opt.days
+                onClick={() => handlePeriodChange(opt.days)}
+                className={`px-4 py-2 text-xs font-medium rounded-lg transition-all cursor-pointer ${commitPeriod === opt.days
                     ? "bg-gradient-to-r from-[#57e071] to-[#3fa855] text-black shadow-lg"
                     : "text-zinc-500 hover:text-white hover:bg-zinc-800"
                   }`}
