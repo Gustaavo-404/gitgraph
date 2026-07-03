@@ -149,11 +149,11 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const statusVariant = mapStatus(classification.status);
 
   return (
-    <div className="space-y-8 pt-14 pb-14 animate-in fade-in duration-500">
+    <div className="space-y-8 pt-10 md:pt-14 pb-16 md:pb-20 animate-in fade-in duration-500">
       {/* ================= HEADER ================= */}
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-zinc-800/50 pb-6">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
         <div>
-          <h2 className="text-3xl font-semibold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+          <h2 className="text-3xl font-semibold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent break-all sm:break-normal">
             {projectDetails.fullName.split('/')[1] || projectDetails.fullName}
           </h2>
           <span className="text-xs text-zinc-600 font-mono">
@@ -167,28 +167,30 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 self-start sm:self-auto">
+        {/* Botões de Ação Responsivos */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           <a
             href={`https://github.com/${projectDetails.fullName}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-zinc-900/50 border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#57e071]/30 transition-all duration-300"
+            className="group inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-zinc-900/50 border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#57e071]/30 transition-all duration-300 w-full sm:w-auto"
           >
-            <FaGithub className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            <FaGithub className="w-4 h-4 group-hover:scale-110 transition-transform flex-shrink-0" />
             <span className="text-sm">View on GitHub</span>
-            <FaExternalLinkAlt className="w-3 h-3 opacity-60" />
+            <FaExternalLinkAlt className="w-3 h-3 opacity-60 flex-shrink-0" />
           </a>
 
           <Link
             href={`/dashboard/${projectId}/reports`}
-            className="inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-gradient-to-r from-[#57e071] to-[#3fa855] text-black font-semibold text-sm hover:opacity-90 transition-all"
+            className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-xl bg-gradient-to-r from-[#57e071] to-[#3fa855] text-black font-semibold text-sm hover:opacity-90 transition-all w-full sm:w-auto"
           >
-            <FaChartLine className="w-4 h-4" />
+            <FaChartLine className="w-4 h-4 flex-shrink-0" />
             Advanced Analytics
           </Link>
         </div>
       </header>
 
+      {/* EXECUTIVE SUMMARY */}
       <section>
         <div className="flex items-center gap-2 mb-4">
           <span className="text-xs font-mono text-zinc-600 tracking-wider">
@@ -198,15 +200,15 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
         </div>
 
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <div className="relative flex items-center justify-center">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start md:items-center gap-6 text-center sm:text-left">
+            <div className="relative flex items-center justify-center flex-shrink-0">
               <ProgressRing progress={animatedHealthScore} size={80} strokeWidth={5} />
               <div className="absolute text-xl font-semibold text-white">
                 {animatedHealthScore}
               </div>
             </div>
 
-            <div className="flex-1">
+            <div className="flex-1 w-full">
               <p className="text-zinc-400 text-sm leading-relaxed">
                 Health Score:{" "}
                 <span className="text-white font-semibold">
@@ -220,13 +222,13 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
               </p>
 
               {classification.risks.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
                   {classification.risks.map((risk, i) => (
                     <span
                       key={i}
                       className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full bg-yellow-400/10 text-yellow-400 border border-yellow-400/30"
                     >
-                      <FaExclamationTriangle className="w-3 h-3" />
+                      <FaExclamationTriangle className="w-3 h-3 flex-shrink-0" />
                       {risk}
                     </span>
                   ))}
@@ -237,6 +239,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
         </div>
       </section>
 
+      {/* STRATEGIC INSIGHTS */}
       <section>
         <div className="flex items-center gap-2 mb-4">
           <span className="text-xs font-mono text-zinc-600 tracking-wider">
@@ -248,15 +251,14 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
           <div className="space-y-2 text-sm text-zinc-400">
             {report.health.insights.map((insight, idx) => (
-              <div key={idx} className="flex items-start gap-2">
-                <span className="text-[#57e071] mt-1">•</span>
+              <div key={idx} className="flex items-start gap-2 text-left">
+                <span className="text-[#57e071] mt-1 flex-shrink-0">•</span>
                 <span>{insight}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
-
     </div>
   );
 }
@@ -331,21 +333,21 @@ function ProgressRing({
 
 function ProjectSkeleton() {
   return (
-    <div className="space-y-8 pt-14 pb-14 animate-pulse">
+    <div className="space-y-8 pt-10 md:pt-14 pb-16 md:pb-20 animate-pulse">
       {/* Header Skeleton */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-zinc-800/50 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
         <div className="space-y-3">
           <div className="h-8 w-64 bg-zinc-800/50 rounded-lg" />
           <div className="h-4 w-40 bg-zinc-800/50 rounded-lg" />
-          <div className="flex gap-2 mt-2">
+          <div className="flex flex-wrap gap-2 mt-2">
             <div className="h-6 w-20 bg-zinc-800/50 rounded-full" />
             <div className="h-6 w-28 bg-zinc-800/50 rounded-full" />
             <div className="h-6 w-20 bg-zinc-800/50 rounded-full" />
           </div>
         </div>
-        <div className="flex gap-3">
-          <div className="h-11 w-32 bg-zinc-800/50 rounded-xl" />
-          <div className="h-11 w-40 bg-zinc-800/50 rounded-xl" />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <div className="h-11 w-full sm:w-32 bg-zinc-800/50 rounded-xl" />
+          <div className="h-11 w-full sm:w-40 bg-zinc-800/50 rounded-xl" />
         </div>
       </div>
 
@@ -356,14 +358,14 @@ function ProjectSkeleton() {
           <div className="h-px flex-1 bg-zinc-800/50" />
         </div>
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <div className="relative flex items-center justify-center">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
+            <div className="relative flex items-center justify-center flex-shrink-0">
               <div className="w-20 h-20 rounded-full bg-zinc-800/50" />
             </div>
-            <div className="flex-1 space-y-3">
+            <div className="flex-1 space-y-3 w-full">
               <div className="h-4 w-full bg-zinc-800/50 rounded" />
-              <div className="h-4 w-3/4 bg-zinc-800/50 rounded" />
-              <div className="flex gap-2 mt-2">
+              <div className="h-4 w-3/4 bg-zinc-800/50 rounded mx-auto sm:mx-0" />
+              <div className="flex flex-wrap gap-2 mt-2 justify-center sm:justify-start">
                 <div className="h-6 w-24 bg-zinc-800/50 rounded-full" />
                 <div className="h-6 w-32 bg-zinc-800/50 rounded-full" />
               </div>

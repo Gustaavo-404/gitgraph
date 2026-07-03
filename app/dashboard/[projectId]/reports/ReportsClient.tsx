@@ -191,7 +191,6 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      // Você pode adicionar um toast ou notificação aqui
       alert('Erro ao gerar PDF. Tente novamente.');
     } finally {
       setIsPdfGenerating(false);
@@ -203,7 +202,6 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
     const headers = Object.keys(flattened);
     const values = headers.map(header => {
       const val = flattened[header];
-      // Escapar strings que contenham vírgulas ou aspas
       if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) {
         return `"${val.replace(/"/g, '""')}"`;
       }
@@ -219,7 +217,6 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         Object.assign(acc, flattenObject(value, `${pre}${key}`));
       } else {
-        // Se for array ou objeto não plano, serializa como JSON
         acc[`${pre}${key}`] = Array.isArray(value) || (value && typeof value === 'object')
           ? JSON.stringify(value)
           : value;
@@ -229,12 +226,10 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
   };
   // ---------------------------------
 
-  // Renderização condicional após todos os hooks
   if (!report) {
     return <ReportsSkeleton />;
   }
 
-  // Cálculos que dependem de report (não são hooks)
   function calculateTrend(current: number, previous: number): number | undefined {
     if (previous === 0) {
       if (current === 0) return 0;
@@ -258,9 +253,9 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
       : 0;
 
   return (
-    <div className="space-y-8 pt-14 pb-14 animate-in fade-in duration-500">
+    <div className="space-y-8 pt-10 md:pt-14 pb-16 md:pb-20 animate-in fade-in duration-500">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-zinc-800/50 pb-6">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
         <div>
           <h2 className="text-3xl font-semibold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
             Project Metrics
@@ -271,21 +266,20 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
         </div>
 
         {/* Export dropdown */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative w-full sm:w-auto" ref={dropdownRef}>
           <button
             onClick={() => setIsExportOpen(!isExportOpen)}
-            className="group inline-flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 hover:border-[#57e071]/30 rounded-xl px-4 py-2 text-sm text-zinc-400 hover:text-white transition-all duration-300 backdrop-blur-sm hover:scale-[1.01] active:scale-[0.99]"
+            className="group inline-flex items-center justify-center gap-2 bg-zinc-900/50 border border-zinc-800 hover:border-[#57e071]/30 rounded-xl px-4 py-2.5 text-sm text-zinc-400 hover:text-white transition-all duration-300 backdrop-blur-sm hover:scale-[1.01] active:scale-[0.99] w-full sm:w-auto"
           >
-            <FaDownload className="group-hover:scale-110 transition-transform" />
+            <FaDownload className="group-hover:scale-110 transition-transform flex-shrink-0" />
             <span>Export</span>
             <FaChevronDown
-              className={`w-3 h-3 transition-transform duration-300 ${isExportOpen ? "rotate-180" : ""
-                }`}
+              className={`w-3 h-3 transition-transform duration-300 flex-shrink-0 ${isExportOpen ? "rotate-180" : ""}`}
             />
           </button>
 
           {isExportOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute right-0 mt-2 w-full sm:w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="p-2">
                 <button
                   onClick={() => exportData('csv')}
@@ -321,7 +315,7 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
                   <span className="text-xs text-zinc-600">.pdf</span>
                 </button>
               </div>
-              <div className="px-4 py-2 bg-zinc-800/30 border-t border-zinc-800/50">
+              <div className="px-4 py-2 bg-zinc-800/30 border-t border-zinc-800/50 hidden sm:block">
                 <p className="text-xs text-zinc-600">Complete project report</p>
               </div>
             </div>
@@ -340,25 +334,21 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
             label="Stars"
             value={animatedStars}
             icon={<FaStar className="text-[#57e071]" />}
-            className="hover:scale-[1.01] transition-transform"
           />
           <MetricCard
             label="Forks"
             value={animatedForks}
             icon={<FaCodeBranch className="text-[#57e071]" />}
-            className="hover:scale-[1.01] transition-transform"
           />
           <MetricCard
             label="Open Issues"
             value={animatedOpenIssues}
             icon={<FaExclamationCircle className="text-[#57e071]" />}
-            className="hover:scale-[1.01] transition-transform"
           />
           <MetricCard
             label="Contributors"
             value={animatedContributors}
             icon={<FaUsers className="text-[#57e071]" />}
-            className="hover:scale-[1.01] transition-transform"
           />
         </div>
       </div>
@@ -371,7 +361,7 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Health Score Card */}
-          <div className="lg:col-span-5 bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 border border-zinc-800 rounded-2xl p-6 transition-all duration-300 hover:border-[#57e071]/30 min-h-[340px] flex flex-col hover:scale-[1.01]">
+          <div className="lg:col-span-5 bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 border border-zinc-800 rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:border-[#57e071]/30 min-h-[340px] flex flex-col hover:scale-[1.01]">
             <div className="flex justify-between items-center mb-4">
               <span className="text-xs font-mono text-zinc-600 uppercase tracking-wider">
                 Health Score
@@ -379,38 +369,38 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
               <InfoTooltip text="Composite index based on activity, processes, maintainability, PR load and popularity." />
             </div>
 
-            <div className="flex flex-col md:flex-row md:items-center gap-6 flex-1">
-              <div className="relative flex items-center justify-center">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start md:items-center gap-6 flex-1 text-center sm:text-left">
+              <div className="relative flex items-center justify-center flex-shrink-0">
                 <ProgressRing progress={animatedHealthScore} size={100} strokeWidth={6} />
-                <div className="absolute text-2xl font-semibold text-white">
+                <div className="absolute text-2xl font-semibold text-white font-mono">
                   {animatedHealthScore}
                 </div>
               </div>
-              <div className="flex-1 space-y-1 text-sm text-zinc-400">
+              <div className="flex-1 space-y-1.5 text-sm text-zinc-400 text-left w-full">
                 {report.health.insights.map((insight, idx) => (
                   <div key={idx} className="flex items-start gap-2">
-                    <span className="text-[#57e071] mt-1">•</span>
+                    <span className="text-[#57e071] mt-1 flex-shrink-0">•</span>
                     <span>{insight}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="mt-4 flex items-center gap-2 text-xs">
+            <div className="mt-4 flex items-center justify-center sm:justify-start gap-2 text-xs">
               <span className="text-zinc-600">Grade:</span>
               <span className="text-[#57e071] font-semibold text-base">{report.health.grade}</span>
             </div>
           </div>
 
           {/* Languages Card */}
-          <div className="lg:col-span-7 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 transition-all duration-300 hover:border-[#57e071]/30 min-h-[340px] flex flex-col hover:scale-[1.01]">
+          <div className="lg:col-span-7 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:border-[#57e071]/30 min-h-[340px] flex flex-col hover:scale-[1.01]">
             <div className="flex justify-between items-center mb-4">
               <span className="text-xs font-mono text-zinc-600 uppercase tracking-wider">
                 LANGUAGE DISTRIBUTION
               </span>
               <InfoTooltip text="Proportion of code bytes per language." />
             </div>
-            <div className="flex-1 w-full flex items-center justify-center">
+            <div className="flex-1 w-full flex items-center justify-center min-h-[220px]">
               <LanguagesDonut data={langData} />
             </div>
           </div>
@@ -425,7 +415,7 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Chart area */}
-          <div className="lg:col-span-8 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 transition-all duration-300 hover:border-[#57e071]/30 hover:scale-[1.01]">
+          <div className="lg:col-span-8 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:border-[#57e071]/30 hover:scale-[1.01]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono text-zinc-600 uppercase tracking-wider">
@@ -433,7 +423,7 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
                 </span>
                 <InfoTooltip text="Number of commits per day over the last 90 days." />
               </div>
-              <div className="flex items-center gap-2 bg-zinc-800/50 rounded-lg p-1">
+              <div className="flex items-center gap-2 bg-zinc-800/50 rounded-lg p-1 self-start sm:self-auto">
                 <PeriodButton
                   active={selectedPeriod === "7d"}
                   onClick={() => setSelectedPeriod("7d")}
@@ -454,7 +444,7 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
                 </PeriodButton>
               </div>
             </div>
-            <div className="h-[300px] w-full">
+            <div className="h-[250px] md:h-[300px] w-full">
               <CommitsChart data={commitsSeries} />
             </div>
           </div>
@@ -466,20 +456,17 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
               value={animatedCommits7d}
               icon={<FaCodeBranch className="text-[#57e071]" />}
               trend={trend7d}
-              className="flex-1 hover:scale-[1.01] transition-transform"
             />
             <MetricCard
               label="Commits (30d)"
               value={animatedCommits30d}
               icon={<FaCodeBranch className="text-[#57e071]" />}
               trend={trend30d}
-              className="flex-1 hover:scale-[1.01] transition-transform"
             />
             <MetricCard
               label="Commits (90d)"
               value={animatedCommits90d}
               icon={<FaCodeBranch className="text-[#57e071]" />}
-              className="flex-1 hover:scale-[1.01] transition-transform"
             />
             <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-xl p-4 text-xs text-zinc-500 text-center hover:scale-[1.01] transition-transform">
               Total commits (90d): <span className="text-white font-mono">{report.commits.commits90d}</span>
@@ -536,7 +523,7 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 flex items-start gap-4 hover:scale-[1.01] transition-transform">
-            <div className="p-3 rounded-full bg-[#57e071]/10 text-[#57e071]">
+            <div className="p-3 rounded-full bg-[#57e071]/10 text-[#57e071] flex-shrink-0">
               <FaUserCircle className="w-6 h-6" />
             </div>
             <div>
@@ -549,7 +536,7 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
           </div>
 
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 flex items-start gap-4 hover:scale-[1.01] transition-transform">
-            <div className="p-3 rounded-full bg-[#57e071]/10 text-[#57e071]">
+            <div className="p-3 rounded-full bg-[#57e071]/10 text-[#57e071] flex-shrink-0">
               <FaCodeBranch className="w-6 h-6" />
             </div>
             <div>
@@ -560,7 +547,7 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
           </div>
 
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 flex items-start gap-4 hover:scale-[1.01] transition-transform">
-            <div className="p-3 rounded-full bg-[#57e071]/10 text-[#57e071]">
+            <div className="p-3 rounded-full bg-[#57e071]/10 text-[#57e071] flex-shrink-0">
               <FaRegClock className="w-6 h-6" />
             </div>
             <div>
@@ -586,8 +573,7 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
         >
           Refresh data
           <ArrowPathIcon
-            className={`w-4 h-4 transition-transform ${isRefreshing ? "animate-spin" : ""
-              }`}
+            className={`w-4 h-4 transition-transform ${isRefreshing ? "animate-spin" : ""}`}
           />
         </button>
       </div>
@@ -599,16 +585,15 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
 
 function MetricCard({ label, value, icon, trend, className = "" }: { label: string; value: number; icon: React.ReactNode; trend?: number; className?: string }) {
   return (
-    <div className={`bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 hover:border-[#57e071]/30 transition-all group ${className}`}>
+    <div className={`bg-zinc-900/50 border border-zinc-800 rounded-xl p-3 sm:p-4 hover:border-[#57e071]/30 transition-all group hover:scale-[1.01] ${className}`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-zinc-600 font-mono">{label}</span>
-        <div className="text-zinc-500 group-hover:text-[#57e071] transition-colors">{icon}</div>
+        <div className="text-zinc-500 group-hover:text-[#57e071] transition-colors flex-shrink-0">{icon}</div>
       </div>
-      <div className="text-2xl font-semibold text-white">{value.toLocaleString()}</div>
+      <div className="text-xl sm:text-2xl font-semibold text-white font-mono">{value.toLocaleString()}</div>
       {trend !== undefined && (
         <div
-          className={`text-xs mt-1 ${trend >= 0 ? "text-[#57e071]" : "text-red-400"
-            }`}
+          className={`text-[10px] sm:text-xs mt-1 ${trend >= 0 ? "text-[#57e071]" : "text-red-400"}`}
         >
           {trend > 0 ? "+" : ""}
           {trend}% vs previous period
@@ -621,15 +606,17 @@ function MetricCard({ label, value, icon, trend, className = "" }: { label: stri
 function FactorCard({ label, value, icon, tooltip }: { label: string; value: number; icon: React.ReactNode; tooltip: string }) {
   const animatedPercent = useAnimatedNumber(Math.round(value * 100));
   return (
-    <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 transition-all duration-300 hover:border-[#57e071]/30 relative group hover:scale-[1.01]">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="text-[#57e071] text-sm">{icon}</div>
-        <span className="text-xs uppercase text-zinc-600 font-mono tracking-wider">
-          {label}
-        </span>
+    <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-3 sm:p-4 transition-all duration-300 hover:border-[#57e071]/30 relative group hover:scale-[1.01]">
+      <div className="flex items-center justify-between gap-1 mb-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="text-[#57e071] text-sm flex-shrink-0">{icon}</div>
+          <span className="text-[10px] sm:text-xs uppercase text-zinc-600 font-mono tracking-wider truncate">
+            {label}
+          </span>
+        </div>
         <InfoTooltip text={tooltip} />
       </div>
-      <div className="text-2xl text-white font-semibold mb-2">{animatedPercent}%</div>
+      <div className="text-xl sm:text-2xl text-white font-semibold font-mono mb-2">{animatedPercent}%</div>
       <div className="w-full h-1.5 bg-zinc-800/50 rounded-full overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-[#57e071] to-[#3fa855] rounded-full transition-all duration-500"
@@ -676,7 +663,7 @@ function PeriodButton({ active, onClick, children }: { active: boolean; onClick:
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1 text-xs rounded-md transition-colors hover:scale-[1.01] ${active
+      className={`px-3 py-1 text-xs rounded-md transition-colors ${active
         ? "bg-[#57e071] text-black font-medium"
         : "text-zinc-400 hover:text-white hover:bg-zinc-700/50"
         }`}
@@ -688,7 +675,7 @@ function PeriodButton({ active, onClick, children }: { active: boolean; onClick:
 
 function InfoTooltip({ text }: { text: string }) {
   return (
-    <div className="relative group/tooltip cursor-pointer">
+    <div className="relative group/tooltip cursor-pointer flex-shrink-0">
       <InformationCircleIcon className="w-4 h-4 text-zinc-600 hover:text-[#57e071] transition-colors" />
 
       <div className="absolute bottom-full right-0 mb-2 w-56 bg-zinc-900 text-white text-xs rounded-lg p-3 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity shadow-2xl border border-zinc-800 z-50">
@@ -700,14 +687,14 @@ function InfoTooltip({ text }: { text: string }) {
 
 function ReportsSkeleton() {
   return (
-    <div className="space-y-8 pt-14 pb-20 animate-pulse">
+    <div className="space-y-8 pt-10 md:pt-14 pb-16 md:pb-20 animate-pulse">
       {/* Header skeleton */}
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-zinc-800/50 pb-6">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
         <div className="space-y-3">
           <div className="h-8 w-64 bg-zinc-800/50 rounded-lg" />
           <div className="h-4 w-40 bg-zinc-800/50 rounded-lg" />
         </div>
-        <div className="h-10 w-24 bg-zinc-800/50 rounded-xl" />
+        <div className="h-11 w-full sm:w-24 bg-zinc-800/50 rounded-xl" />
       </header>
 
       {/* KEY METRICS section skeleton */}
@@ -736,17 +723,17 @@ function ReportsSkeleton() {
               <div className="h-4 w-24 bg-zinc-800/50 rounded" />
               <div className="w-4 h-4 bg-zinc-800/50 rounded" />
             </div>
-            <div className="flex flex-col md:flex-row md:items-center gap-6 flex-1">
-              <div className="flex items-center justify-center">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 flex-1 text-center sm:text-left">
+              <div className="flex items-center justify-center flex-shrink-0">
                 <div className="w-[100px] h-[100px] rounded-full bg-zinc-800/50" />
               </div>
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 space-y-2 w-full">
                 <div className="h-4 w-full bg-zinc-800/50 rounded" />
                 <div className="h-4 w-5/6 bg-zinc-800/50 rounded" />
                 <div className="h-4 w-4/6 bg-zinc-800/50 rounded" />
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-4 flex items-center justify-center sm:justify-start gap-2">
               <div className="h-4 w-12 bg-zinc-800/50 rounded" />
               <div className="h-6 w-16 bg-zinc-800/50 rounded" />
             </div>
@@ -785,7 +772,7 @@ function ReportsSkeleton() {
                 <div className="h-6 w-10 bg-zinc-700/50 rounded" />
               </div>
             </div>
-            <div className="h-[300px] w-full bg-zinc-800/30 rounded-lg" />
+            <div className="h-[250px] md:h-[300px] w-full bg-zinc-800/30 rounded-lg" />
           </div>
 
           {/* Stacked commit cards skeleton */}

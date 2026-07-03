@@ -186,7 +186,7 @@ export default function Dashboard() {
 
   if (isLoading || statsLoading) {
     return (
-      <div className="pt-14 pb-20 space-y-12">
+      <div className="pt-10 md:pt-14 pb-16 md:pb-20 space-y-12">
         <DashboardSkeleton />
       </div>
     );
@@ -196,9 +196,7 @@ export default function Dashboard() {
     return (
       <div className="pt-14 pb-20 flex flex-col items-center justify-center min-h-[70vh] text-center px-4 gap-8 animate-in fade-in duration-700">
         <div className="relative">
-          {/* Círculo com borda mais grossa e fundo sutil */}
           <div className="w-24 h-24 rounded-full border-2 border-zinc-700/80 flex items-center justify-center backdrop-blur-sm bg-zinc-900/20">
-            {/* Losango apenas com borda, ocupando o círculo */}
             <div className="w-[68px] h-[68px] border-2 border-zinc-700/80 rotate-45" />
           </div>
         </div>
@@ -219,16 +217,16 @@ export default function Dashboard() {
   const totalWatchers = stats?.reduce((acc, p) => acc + (p.watchers || 0), 0) || 0;
 
   return (
-    <div className="mt-14 pb-20 space-y-16">
+    <div className="mt-10 md:mt-14 pb-16 md:pb-20 space-y-12 md:space-y-16">
       {/* SECTION: Global Stats */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
-          <h2 className="text-3xl font-semibold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+          <h2 className="text-2xl md:text-3xl font-semibold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
             Global Network Metrics
           </h2>
           <InfoTooltip text="Overview of all metrics across your connected repositories." />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <QuickStatHighEnd
             label="Stars"
             value={totalStars}
@@ -258,9 +256,9 @@ export default function Dashboard() {
 
       {/* SECTION: Projects */}
       <section className="space-y-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
           <div className="space-y-1">
-            <h2 className="text-3xl font-semibold flex items-center gap-2 bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+            <h2 className="text-2xl md:text-3xl font-semibold flex items-center gap-2 bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
               Active Nodes
               <InfoTooltip text="Nodes are your connected repositories with live stats." />
             </h2>
@@ -268,121 +266,113 @@ export default function Dashboard() {
               Instances: <span className="text-zinc-300 font-mono">{projects.length}</span>
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Filtro por linguagem */}
-            <select
-              value={languageFilter}
-              onChange={(e) => setLanguageFilter(e.target.value)}
-              className="bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-white focus:ring-2 focus:ring-[#57e071]/30 focus:border-[#57e071]/30 appearance-none cursor-pointer hover:border-zinc-700 transition-colors"
-            >
-              {languages.map(lang => (
-                <option key={lang} value={lang} className="bg-zinc-900">
-                  {lang === "all" ? "All Languages" : lang}
-                </option>
-              ))}
-            </select>
-
-            {/* Toggle cards/table */}
-            <button
-              onClick={() => setViewMode(v => v === "cards" ? "table" : "cards")}
-              className="p-2 bg-zinc-900/50 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-colors"
-            >
-              {viewMode === "cards" ? <FaTable /> : <FaThLarge />}
-            </button>
-
-            {/* Botão de exportação estilizado */}
-            <div className="relative">
-              <button
-                onClick={() => setOpenExportMenu(!openExportMenu)}
-                className="group relative inline-flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 hover:border-[#57e071]/30 rounded-xl px-4 py-2 text-zinc-400 hover:text-white transition-all duration-300"
+          
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <select
+                value={languageFilter}
+                onChange={(e) => setLanguageFilter(e.target.value)}
+                className="flex-1 sm:flex-initial bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-[#57e071]/30 focus:border-[#57e071]/30 appearance-none cursor-pointer hover:border-zinc-700 transition-colors"
               >
-                <FaDownload className="text-sm group-hover:scale-110 transition-transform" />
-                <span className="text-sm">Export</span>
+                {languages.map(lang => (
+                  <option key={lang} value={lang} className="bg-zinc-900">
+                    {lang === "all" ? "All Languages" : lang}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => setViewMode(v => v === "cards" ? "table" : "cards")}
+                className="p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-colors flex-shrink-0"
+                aria-label="Toggle View Mode"
+              >
+                {viewMode === "cards" ? <FaTable /> : <FaThLarge />}
               </button>
 
-              {openExportMenu && (
-                <>
-                  {/* Overlay para fechar ao clicar fora */}
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setOpenExportMenu(false)}
-                  />
+              <div className="relative flex-shrink-0">
+                <button
+                  onClick={() => setOpenExportMenu(!openExportMenu)}
+                  className="group relative inline-flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 hover:border-[#57e071]/30 rounded-xl px-4 py-2.5 text-zinc-400 hover:text-white transition-all duration-300"
+                >
+                  <FaDownload className="text-sm group-hover:scale-110 transition-transform" />
+                  <span className="text-sm hidden xs:inline">Export</span>
+                </button>
 
-                  {/* Dropdown menu estilizado */}
-                  <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="py-1">
-                      <button
-                        onClick={() => exportData("csv")}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-colors group"
-                      >
-                        <div className="w-6 h-6 rounded-lg bg-[#57e071]/10 flex items-center justify-center group-hover:bg-[#57e071]/20 transition-colors">
-                          <FaFileCsv className="text-[#57e071] text-xs" />
-                        </div>
-                        <span className="flex-1 text-left">CSV Format</span>
-                        <span className="text-xs text-zinc-600">.csv</span>
-                      </button>
-
-                      <div className="border-t border-zinc-800/50 my-1" />
-
-                      <button
-                        onClick={() => exportData("json")}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-colors group"
-                      >
-                        <div className="w-6 h-6 rounded-lg bg-[#57e071]/10 flex items-center justify-center group-hover:bg-[#57e071]/20 transition-colors">
-                          <FaFileCode className="text-[#57e071] text-xs" />
-                        </div>
-                        <span className="flex-1 text-left">JSON Format</span>
-                        <span className="text-xs text-zinc-600">.json</span>
-                      </button>
-
-                      <div className="border-t border-zinc-800/50 my-1" />
-
-                      <button
-                        onClick={() => exportData("pdf")}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-colors group opacity-50 cursor-not-allowed"
-                        disabled
-                      >
-                        <div className="w-6 h-6 rounded-lg bg-[#57e071]/10 flex items-center justify-center">
-                          <FaFilePdf className="text-[#57e071] text-xs" />
-                        </div>
-                        <span className="flex-1 text-left">PDF Format</span>
-                        <span className="text-xs text-zinc-600">soon</span>
-                      </button>
+                {openExportMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setOpenExportMenu(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="py-1">
+                        <button
+                          onClick={() => exportData("csv")}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-colors group"
+                        >
+                          <div className="w-6 h-6 rounded-lg bg-[#57e071]/10 flex items-center justify-center group-hover:bg-[#57e071]/20 transition-colors">
+                            <FaFileCsv className="text-[#57e071] text-xs" />
+                          </div>
+                          <span className="flex-1 text-left">CSV Format</span>
+                          <span className="text-xs text-zinc-600">.csv</span>
+                        </button>
+                        <div className="border-t border-zinc-800/50 my-1" />
+                        <button
+                          onClick={() => exportData("json")}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-colors group"
+                        >
+                          <div className="w-6 h-6 rounded-lg bg-[#57e071]/10 flex items-center justify-center group-hover:bg-[#57e071]/20 transition-colors">
+                            <FaFileCode className="text-[#57e071] text-xs" />
+                          </div>
+                          <span className="flex-1 text-left">JSON Format</span>
+                          <span className="text-xs text-zinc-600">.json</span>
+                        </button>
+                        <div className="border-t border-zinc-800/50 my-1" />
+                        <button
+                          onClick={() => exportData("pdf")}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-colors group opacity-50 cursor-not-allowed"
+                          disabled
+                        >
+                          <div className="w-6 h-6 rounded-lg bg-[#57e071]/10 flex items-center justify-center">
+                            <FaFilePdf className="text-[#57e071] text-xs" />
+                          </div>
+                          <span className="flex-1 text-left">PDF Format</span>
+                          <span className="text-xs text-zinc-600">soon</span>
+                        </button>
+                      </div>
+                      <div className="px-4 py-2 bg-zinc-800/30 border-t border-zinc-800/50">
+                        <p className="text-xs text-zinc-600">
+                          Export {filteredProjects.length} node{filteredProjects.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
                     </div>
-
-                    {/* Rodapé decorativo */}
-                    <div className="px-4 py-2 bg-zinc-800/30 border-t border-zinc-800/50">
-                      <p className="text-xs text-zinc-600">
-                        Export {filteredProjects.length} node{filteredProjects.length !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </div>
 
-            {/* Busca */}
-            <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-sm" />
-              <input
-                type="text"
-                placeholder="Filter nodes..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-64 bg-zinc-900/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-[#57e071]/30 focus:border-[#57e071]/30 focus:outline-none transition-all backdrop-blur-sm"
-              />
-            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+              <div className="relative w-full sm:w-64">
+                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-sm" />
+                <input
+                  type="text"
+                  placeholder="Filter nodes..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-[#57e071]/30 focus:border-[#57e071]/30 focus:outline-none transition-all backdrop-blur-sm"
+                />
+              </div>
 
-            <Link
-              href="/dashboard/connect"
-              className="group relative inline-flex items-center gap-2 bg-gradient-to-r from-[#57e071] to-[#3fa855] rounded-xl px-6 py-3 text-black font-semibold hover:opacity-90 transition-all duration-300 shadow-lg shadow-[#57e071]/20 hover:shadow-xl hover:shadow-[#57e071]/30"
-            >
-              <FaPlus className="transition-transform group-hover:rotate-90" /> Add Node
-            </Link>
+              <Link
+                href="/dashboard/connect"
+                className="group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#57e071] to-[#3fa855] rounded-xl px-6 py-2.5 text-black font-semibold hover:opacity-90 transition-all duration-300 shadow-lg shadow-[#57e071]/20 hover:shadow-xl hover:shadow-[#57e071]/30 w-full sm:w-auto"
+              >
+                <FaPlus className="transition-transform group-hover:rotate-90 flex-shrink-0" /> Add Node
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Renderização condicional: Cards ou Tabela */}
         {viewMode === "cards" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredProjects.map((p) => {
@@ -399,13 +389,13 @@ export default function Dashboard() {
                       e.stopPropagation();
                       setOpenMenu(openMenu === p.id ? null : p.id);
                     }}
-                    className="absolute top-5 right-5 text-zinc-500 hover:text-white transition p-1 rounded-lg hover:bg-zinc-800"
+                    className="absolute top-5 right-5 text-zinc-500 hover:text-white transition p-1 rounded-lg hover:bg-zinc-800 z-10"
                   >
                     <FaEllipsisV className="w-4 h-4" />
                   </button>
 
                   {openMenu === p.id && (
-                    <div className="absolute top-12 right-5 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl w-44 z-50 animate-in fade-in zoom-in duration-200 overflow-hidden">
+                    <div className="absolute top-12 right-5 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl w-44 z-25 animate-in fade-in zoom-in duration-200 overflow-hidden">
                       <button
                         onClick={() => handleDelete(p.id)}
                         className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-400/10 transition-colors"
@@ -417,7 +407,7 @@ export default function Dashboard() {
 
                   <Link href={`/dashboard/${p.id}`} className="block space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-zinc-700 to-zinc-800 rounded-xl flex items-center justify-center">
+                      <div className="w-10 h-10 bg-gradient-to-br from-zinc-700 to-zinc-800 rounded-xl flex items-center justify-center flex-shrink-0">
                         <FaGithub className="text-zinc-300" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -465,55 +455,56 @@ export default function Dashboard() {
             })}
           </div>
         ) : (
-          /* Visualização em Tabela */
           <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 backdrop-blur-sm border border-zinc-800/50 rounded-2xl overflow-hidden shadow-xl">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 text-zinc-300 text-xs uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Repository</th>
-                  <th className="px-6 py-4 font-medium">Language</th>
-                  <th className="px-6 py-4 font-medium">Stars</th>
-                  <th className="px-6 py-4 font-medium">Forks</th>
-                  <th className="px-6 py-4 font-medium">Issues</th>
-                  <th className="px-6 py-4 font-medium">Watchers</th>
-                  <th className="px-6 py-4 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/50">
-                {filteredProjects.map((p) => {
-                  const projectStats = stats?.find(s => s.id === p.id);
-                  return (
-                    <tr
-                      key={p.id}
-                      className="group hover:bg-zinc-800/20 transition-colors duration-200"
-                    >
-                      <td className="px-6 py-4 font-medium text-white">
-                        <Link href={`/dashboard/${p.id}`} className="hover:text-[#57e071] transition-colors">
-                          {p.fullName}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 text-zinc-400">
-                        <span className="px-2 py-1 bg-zinc-800/50 rounded-full text-xs">
-                          {projectLanguages[p.id] || "—"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-zinc-400">{projectStats?.stars || 0}</td>
-                      <td className="px-6 py-4 text-zinc-400">{projectStats?.forks || 0}</td>
-                      <td className="px-6 py-4 text-zinc-400">{projectStats?.openIssues || 0}</td>
-                      <td className="px-6 py-4 text-zinc-400">{projectStats?.watchers || 0}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => handleDelete(p.id)}
-                          className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 text-xs font-medium transition-colors"
-                        >
-                          Delete <FaTrash className="w-3 h-3" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-sm text-left min-w-[700px]">
+                <thead className="bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 text-zinc-300 text-xs uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4 font-medium">Repository</th>
+                    <th className="px-6 py-4 font-medium">Language</th>
+                    <th className="px-6 py-4 font-medium">Stars</th>
+                    <th className="px-6 py-4 font-medium">Forks</th>
+                    <th className="px-6 py-4 font-medium">Issues</th>
+                    <th className="px-6 py-4 font-medium">Watchers</th>
+                    <th className="px-6 py-4 font-medium text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/50">
+                  {filteredProjects.map((p) => {
+                    const projectStats = stats?.find(s => s.id === p.id);
+                    return (
+                      <tr
+                        key={p.id}
+                        className="group hover:bg-zinc-800/20 transition-colors duration-200"
+                      >
+                        <td className="px-6 py-4 font-medium text-white">
+                          <Link href={`/dashboard/${p.id}`} className="hover:text-[#57e071] transition-colors truncate block max-w-[200px] sm:max-w-xs">
+                            {p.fullName}
+                          </Link>
+                        </td>
+                        <td className="px-6 py-4 text-zinc-400">
+                          <span className="px-2 py-1 bg-zinc-800/50 rounded-full text-xs">
+                            {projectLanguages[p.id] || "—"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-zinc-400">{projectStats?.stars || 0}</td>
+                        <td className="px-6 py-4 text-zinc-400">{projectStats?.forks || 0}</td>
+                        <td className="px-6 py-4 text-zinc-400">{projectStats?.openIssues || 0}</td>
+                        <td className="px-6 py-4 text-zinc-400">{projectStats?.watchers || 0}</td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleDelete(p.id)}
+                            className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 text-xs font-medium transition-colors"
+                          >
+                            Delete <FaTrash className="w-3 h-3" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -527,11 +518,11 @@ export default function Dashboard() {
       {/* SECTION: Analytics */}
       <section className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/50 pb-6">
-          <h2 className="text-3xl font-semibold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent flex items-center gap-2">
+          <h2 className="text-2xl md:text-3xl font-semibold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent flex items-center gap-2">
             Aggregated Intelligence
             <InfoTooltip text="Combined activity and technology usage from all nodes." />
           </h2>
-          <div className="flex bg-zinc-900/70 p-1 rounded-xl border border-zinc-800/50 backdrop-blur-sm">
+          <div className="flex bg-zinc-900/70 p-1 rounded-xl border border-zinc-800/50 backdrop-blur-sm self-start sm:self-auto">
             {[
               { label: "ALL", days: 0 },
               { label: "7D", days: 7 },
@@ -551,9 +542,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Ajuste de espaçamento vertical no mobile: gap-y-12 e lg:gap-8 */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-8">
           {/* Commits Chart */}
-          <div className="lg:col-span-8 bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 backdrop-blur-sm border border-zinc-800/50 p-6 rounded-2xl shadow-xl transition-all duration-300 hover:border-[#57e071]/30 hover:shadow-2xl hover:shadow-[#57e071]/5">
+          <div className="lg:col-span-8 bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 backdrop-blur-sm border border-zinc-800/50 p-4 md:p-6 rounded-2xl shadow-xl transition-all duration-300 hover:border-[#57e071]/30 hover:shadow-2xl hover:shadow-[#57e071]/5">
             <div className="flex items-center justify-between mb-6">
               <span className="text-xs font-mono text-zinc-600 uppercase tracking-wider">
                 Network Activity Stream
@@ -561,20 +553,20 @@ export default function Dashboard() {
               <span className="text-xs text-zinc-600">Last {commitPeriod || "all"} days</span>
             </div>
             <p className="text-sm text-zinc-500 mb-6">Commit trend across all connected repositories.</p>
-            <div className="h-[300px] w-full">
+            <div className="h-[250px] md:h-[300px] w-full">
               <CommitsChart data={filteredCommits} />
             </div>
           </div>
 
           {/* Languages Donut */}
-          <div className="lg:col-span-4 bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 backdrop-blur-sm border border-zinc-800/50 p-6 rounded-2xl shadow-xl transition-all duration-300 hover:border-[#57e071]/30 hover:shadow-2xl hover:shadow-[#57e071]/5 flex flex-col">
+          <div className="lg:col-span-4 bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 backdrop-blur-sm border border-zinc-800/50 p-4 md:p-6 rounded-2xl shadow-xl transition-all duration-300 hover:border-[#57e071]/30 hover:shadow-2xl hover:shadow-[#57e071]/5 flex flex-col">
             <div className="mb-4">
               <span className="text-xs font-mono text-zinc-600 uppercase tracking-wider">
                 Source Composition
               </span>
             </div>
             <p className="text-sm text-zinc-500 mb-4">Language distribution across repositories.</p>
-            <div className="relative flex-1 flex items-center justify-center min-h-[240px]">
+            <div className="relative flex-1 flex items-center justify-center min-h-[220px] md:min-h-[240px]">
               <LanguagesDonut
                 data={Object.entries(languageData).map(([name, value]) => ({ name, value }))}
               />
@@ -609,7 +601,7 @@ function QuickStatHighEnd({
   const trendIcon = trend && trend > 0 ? "↑" : trend && trend < 0 ? "↓" : null;
 
   return (
-    <div className="relative bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 backdrop-blur-sm border border-zinc-800/50 rounded-2xl p-6 transition-all duration-300 hover:border-[#57e071]/30 hover:shadow-xl hover:shadow-[#57e071]/5">
+    <div className="relative bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 backdrop-blur-sm border border-zinc-800/50 rounded-2xl p-5 md:p-6 transition-all duration-300 hover:border-[#57e071]/30 hover:shadow-xl hover:shadow-[#57e071]/5">
       <div className="absolute inset-0 bg-gradient-to-r from-[#57e071]/0 via-[#57e071]/5 to-transparent opacity-0 hover:opacity-100 rounded-2xl transition-opacity duration-500 pointer-events-none" />
 
       <div className="flex justify-between items-start mb-4">
@@ -621,7 +613,7 @@ function QuickStatHighEnd({
 
       <div>
         <p className="text-sm text-zinc-500 mb-1">{label}</p>
-        <p className="text-3xl font-bold text-white">{value.toLocaleString()}</p>
+        <p className="text-2xl md:text-3xl font-bold text-white">{value.toLocaleString()}</p>
       </div>
 
       {trend !== undefined && (
@@ -649,14 +641,14 @@ function InfoTooltip({ text, className }: { text: string; className?: string }) 
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-16 animate-pulse">
+    <div className="space-y-12 md:space-y-16 animate-pulse">
       {/* SECTION: Global Network Metrics */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
           <div className="h-8 w-64 bg-zinc-800/50 rounded-lg" />
           <div className="w-5 h-5 bg-zinc-800/50 rounded-full" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
@@ -678,22 +670,24 @@ function DashboardSkeleton() {
 
       {/* SECTION: Active Nodes */}
       <section className="space-y-8">
-        {/* Header with filters and actions */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
           <div className="space-y-2">
             <div className="h-8 w-48 bg-zinc-800/50 rounded-lg" />
             <div className="h-4 w-32 bg-zinc-800/50 rounded" />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="h-10 w-32 bg-zinc-800/50 rounded-xl" /> {/* language filter */}
-            <div className="h-10 w-10 bg-zinc-800/50 rounded-xl" /> {/* view toggle */}
-            <div className="h-10 w-24 bg-zinc-800/50 rounded-xl" /> {/* export button */}
-            <div className="h-10 w-64 bg-zinc-800/50 rounded-xl" /> {/* search */}
-            <div className="h-10 w-28 bg-zinc-800/50 rounded-xl" /> {/* add button */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="h-10 flex-1 sm:w-32 bg-zinc-800/50 rounded-xl" />
+              <div className="h-10 w-10 bg-zinc-800/50 rounded-xl" />
+              <div className="h-10 w-24 bg-zinc-800/50 rounded-xl" />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              <div className="h-10 w-full sm:w-64 bg-zinc-800/50 rounded-xl" />
+              <div className="h-10 w-full sm:w-28 bg-zinc-800/50 rounded-xl" />
+            </div>
           </div>
         </div>
 
-        {/* Projects grid (cards) */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {[...Array(3)].map((_, i) => (
             <div
@@ -708,7 +702,7 @@ function DashboardSkeleton() {
                     <div className="h-5 w-32 bg-zinc-800/50 rounded" />
                   </div>
                 </div>
-                <div className="w-6 h-6 bg-zinc-800/50 rounded-lg" /> {/* menu */}
+                <div className="w-6 h-6 bg-zinc-800/50 rounded-lg" />
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 bg-zinc-800/50 rounded-full" />
@@ -727,7 +721,7 @@ function DashboardSkeleton() {
         </div>
       </section>
 
-      {/* SECTION: Aggregated Intelligence */}
+      {/* SECTION: Aggregated Intelligence (Skeleton) */}
       <section className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/50 pb-6">
           <div className="flex items-center gap-2">
@@ -741,18 +735,17 @@ function DashboardSkeleton() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Chart area */}
+        {/* Esqueleto com o mesmo espaçamento gap-y-12 e lg:gap-8 */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-8">
           <div className="lg:col-span-8 bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-6 space-y-4">
             <div className="flex justify-between">
               <div className="h-4 w-40 bg-zinc-800/50 rounded" />
               <div className="h-4 w-20 bg-zinc-800/50 rounded" />
             </div>
             <div className="h-4 w-64 bg-zinc-800/50 rounded" />
-            <div className="h-[240px] w-full bg-zinc-800/30 rounded-lg" />
+            <div className="h-[250px] md:h-[300px] w-full bg-zinc-800/30 rounded-lg" />
           </div>
 
-          {/* Donut area */}
           <div className="lg:col-span-4 bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-6 space-y-4">
             <div className="h-4 w-36 bg-zinc-800/50 rounded" />
             <div className="h-4 w-48 bg-zinc-800/50 rounded" />

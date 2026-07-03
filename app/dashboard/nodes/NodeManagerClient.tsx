@@ -223,7 +223,7 @@ export default function NodeManagerClient() {
   }
 
   return (
-    <div className="pt-14 pb-20 space-y-8 animate-in fade-in duration-500">
+    <div className="pt-10 md:pt-14 pb-16 md:pb-20 space-y-8 animate-in fade-in duration-500">
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
         <div className="space-y-2">
@@ -238,12 +238,13 @@ export default function NodeManagerClient() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        {/* Controles Responsivos */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           {/* Filtro por linguagem */}
           <select
             value={languageFilter}
             onChange={(e) => setLanguageFilter(e.target.value)}
-            className="bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-white focus:ring-2 focus:ring-[#57e071]/30 appearance-none cursor-pointer hover:border-zinc-700 transition-colors"
+            className="flex-1 sm:flex-initial bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-[#57e071]/30 appearance-none cursor-pointer hover:border-zinc-700 transition-colors"
           >
             {languages.map(lang => (
               <option key={lang} value={lang} className="bg-zinc-900">
@@ -253,94 +254,96 @@ export default function NodeManagerClient() {
           </select>
 
           {/* Busca */}
-          <div className="relative">
+          <div className="relative w-full sm:w-64">
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-sm" />
             <input
               type="text"
               placeholder="Filter nodes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-64 bg-zinc-900/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-[#57e071]/30 focus:border-[#57e071]/30 focus:outline-none transition-all backdrop-blur-sm"
+              className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-[#57e071]/30 focus:border-[#57e071]/30 focus:outline-none transition-all backdrop-blur-sm"
             />
           </div>
         </div>
       </header>
 
-      {/* Tabela de comparação */}
+      {/* Tabela de comparação com Rolagem Horizontal Ativa */}
       <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 backdrop-blur-sm border border-zinc-800/50 rounded-2xl overflow-hidden shadow-xl">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 text-zinc-300 text-xs uppercase tracking-wider">
-            <tr>
-              <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort("name")}>
-                <div className="flex items-center gap-1">
-                  Repository <SortIcon field="name" />
-                </div>
-              </th>
-              <th className="px-6 py-4 font-medium">Language</th>
-              <th className="px-6 py-4 font-medium cursor-pointer hover:text-white text-right" onClick={() => handleSort("stars")}>
-                <div className="flex items-center justify-end gap-1">
-                  Stars <SortIcon field="stars" />
-                </div>
-              </th>
-              <th className="px-6 py-4 font-medium cursor-pointer hover:text-white text-right" onClick={() => handleSort("forks")}>
-                <div className="flex items-center justify-end gap-1">
-                  Forks <SortIcon field="forks" />
-                </div>
-              </th>
-              <th className="px-6 py-4 font-medium cursor-pointer hover:text-white text-right" onClick={() => handleSort("issues")}>
-                <div className="flex items-center justify-end gap-1">
-                  Issues <SortIcon field="issues" />
-                </div>
-              </th>
-              <th className="px-6 py-4 font-medium cursor-pointer hover:text-white text-right" onClick={() => handleSort("commits")}>
-                <div className="flex items-center justify-end gap-1">
-                  Commits (30d) <SortIcon field="commits" />
-                </div>
-              </th>
-              <th className="px-6 py-4 font-medium cursor-pointer hover:text-white text-right" onClick={() => handleSort("health")}>
-                <div className="flex items-center justify-end gap-1">
-                  Health <SortIcon field="health" />
-                </div>
-              </th>
-              <th className="px-6 py-4 font-medium text-center">Priority</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-800/50">
-            {filteredProjects.map((p) => {
-              const priority = getPriority(p);
-              return (
-                <tr key={p.id} className="group hover:bg-zinc-800/20 transition-colors duration-200">
-                  <td className="px-6 py-4 font-medium text-white">
-                    <Link href={`/dashboard/${p.id}`} className="hover:text-[#57e071] transition-colors flex items-center gap-2">
-                      <FaGithub className="text-zinc-500" />
-                      {p.fullName}
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4 text-zinc-400">
-                    {p.language ? (
-                      <span className="px-2 py-1 bg-zinc-800/50 rounded-full text-xs">{p.language}</span>
-                    ) : "—"}
-                  </td>
-                  <td className="px-6 py-4 text-right text-zinc-400">{p.stars.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-right text-zinc-400">{p.forks.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-right text-zinc-400">{p.openIssues.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-right text-zinc-400">{p.commits30d.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <span className="text-white font-mono">{p.healthScore}</span>
-                      <span className="text-xs text-zinc-600">({p.healthGrade})</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full border ${priority.color}`}>
-                      {priority.label}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm text-left min-w-[850px]">
+            <thead className="bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 text-zinc-300 text-xs uppercase tracking-wider">
+              <tr>
+                <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort("name")}>
+                  <div className="flex items-center gap-1">
+                    Repository <SortIcon field="name" />
+                  </div>
+                </th>
+                <th className="px-6 py-4 font-medium">Language</th>
+                <th className="px-6 py-4 font-medium cursor-pointer hover:text-white text-right" onClick={() => handleSort("stars")}>
+                  <div className="flex items-center justify-end gap-1">
+                    Stars <SortIcon field="stars" />
+                  </div>
+                </th>
+                <th className="px-6 py-4 font-medium cursor-pointer hover:text-white text-right" onClick={() => handleSort("forks")}>
+                  <div className="flex items-center justify-end gap-1">
+                    Forks <SortIcon field="forks" />
+                  </div>
+                </th>
+                <th className="px-6 py-4 font-medium cursor-pointer hover:text-white text-right" onClick={() => handleSort("issues")}>
+                  <div className="flex items-center justify-end gap-1">
+                    Issues <SortIcon field="issues" />
+                  </div>
+                </th>
+                <th className="px-6 py-4 font-medium cursor-pointer hover:text-white text-right" onClick={() => handleSort("commits")}>
+                  <div className="flex items-center justify-end gap-1">
+                    Commits (30d) <SortIcon field="commits" />
+                  </div>
+                </th>
+                <th className="px-6 py-4 font-medium cursor-pointer hover:text-white text-right" onClick={() => handleSort("health")}>
+                  <div className="flex items-center justify-end gap-1">
+                    Health <SortIcon field="health" />
+                  </div>
+                </th>
+                <th className="px-6 py-4 font-medium text-center">Priority</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-800/50">
+              {filteredProjects.map((p) => {
+                const priority = getPriority(p);
+                return (
+                  <tr key={p.id} className="group hover:bg-zinc-800/20 transition-colors duration-200">
+                    <td className="px-6 py-4 font-medium text-white">
+                      <Link href={`/dashboard/${p.id}`} className="hover:text-[#57e071] transition-colors flex items-center gap-2 truncate max-w-xs">
+                        <FaGithub className="text-zinc-500 flex-shrink-0" />
+                        <span>{p.fullName}</span>
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4 text-zinc-400">
+                      {p.language ? (
+                        <span className="px-2 py-1 bg-zinc-800/50 rounded-full text-xs">{p.language}</span>
+                      ) : "—"}
+                    </td>
+                    <td className="px-6 py-4 text-right text-zinc-400">{p.stars.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right text-zinc-400">{p.forks.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right text-zinc-400">{p.openIssues.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right text-zinc-400">{p.commits30d.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="text-white font-mono">{p.healthScore}</span>
+                        <span className="text-xs text-zinc-600">({p.healthGrade})</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full border ${priority.color}`}>
+                        {priority.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Cards de insight rápidos */}
@@ -377,10 +380,10 @@ export default function NodeManagerClient() {
 
 function QuickInsightCard({ title, value, icon, description }: { title: string; value: number; icon: React.ReactNode; description: string }) {
   return (
-    <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-6 hover:border-[#57e071]/30 transition-all hover:scale-[1.01]">
+    <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-5 md:p-6 hover:border-[#57e071]/30 transition-all hover:scale-[1.01]">
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-sm font-medium text-zinc-400">{title}</h3>
-        <div className="text-xl">{icon}</div>
+        <div className="text-xl flex-shrink-0">{icon}</div>
       </div>
       <p className="text-3xl font-semibold text-white mb-2">{value}</p>
       <p className="text-xs text-zinc-600">{description}</p>
@@ -402,7 +405,7 @@ function InfoTooltip({ text }: { text: string }) {
 /* --- Skeleton --- */
 function NodeManagerSkeleton() {
   return (
-    <div className="pt-14 pb-20 space-y-8 animate-pulse">
+    <div className="pt-10 md:pt-14 pb-16 md:pb-20 space-y-8 animate-pulse">
       {/* Header skeleton */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
         <div className="space-y-2">
@@ -412,9 +415,9 @@ function NodeManagerSkeleton() {
           </div>
           <div className="h-4 w-40 bg-zinc-800/50 rounded" />
         </div>
-        <div className="flex gap-3">
-          <div className="h-10 w-32 bg-zinc-800/50 rounded-xl" />
-          <div className="h-10 w-64 bg-zinc-800/50 rounded-xl" />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <div className="h-10 flex-1 sm:w-32 bg-zinc-800/50 rounded-xl" />
+          <div className="h-10 w-full sm:w-64 bg-zinc-800/50 rounded-xl" />
         </div>
       </header>
 
