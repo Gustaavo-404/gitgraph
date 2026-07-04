@@ -99,7 +99,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative h-[calc(120vh-4rem)] w-full overflow-hidden bg-black text-white mt-16">
+    <section className="relative h-[calc(100dvh-4rem)] md:h-[calc(120vh-4rem)] w-full overflow-hidden bg-black text-white mt-16">
 
       <div
         ref={gateRef}
@@ -120,7 +120,7 @@ export function Hero() {
           muted
           loop
           playsInline
-          className="h-full w-full object-cover object-[center_10%]"
+          className="h-full w-full object-cover object-[center_30%] md:object-[center_10%]"
         >
           <source src="/herovid.mp4" type="video/mp4" />
         </video>
@@ -129,7 +129,7 @@ export function Hero() {
       {/* Overlay */}
       <div
         ref={overlayRef}
-        className="hero-hidden absolute inset-0 z-10 bg-black/40"
+        className="hero-hidden absolute inset-0 z-10 bg-black/65 md:bg-black/40"
       />
 
       {/* Content */}
@@ -137,30 +137,30 @@ export function Hero() {
         ref={contentRef}
         className="hero-hidden relative z-20 flex h-full w-full items-center"
       >
-        <div className="ml-20 w-[50vw] mb-[25vh] flex flex-col gap-6 text-left">
+        <div className="px-6 md:px-0 md:ml-20 w-full sm:w-[80vw] md:w-[55vw] lg:w-[50vw] mb-[8vh] md:mb-[25vh] flex flex-col gap-4 md:gap-6 text-left">
 
           {/* Status */}
           <div
             ref={statusRef}
-            className="flex items-center gap-2 text-xs tracking-widest uppercase text-zinc-300"
+            className="flex items-center gap-2 text-[10px] sm:text-xs tracking-widest uppercase text-zinc-300"
           >
-            <span className="h-2 w-2 rounded-full bg-[#57e071] shadow-[0_0_10px_#57e071]" />
+            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#57e071] shadow-[0_0_10px_#57e071]" />
             GitHub Sync: Activated
           </div>
 
           {/* Title */}
           <h1
             ref={titleRef}
-            className="text-5xl md:text-6xl font-normal leading-tight tracking-tight mb-5"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-normal leading-tight tracking-tight mb-2 sm:mb-5 text-left"
           >
             Turn your GitHub files into actionable insights
           </h1>
 
           {/* Buttons */}
-          <div ref={buttonsRef} className="flex gap-4">
+          <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
             <Link
               href="/login"
-              className="group relative flex items-center justify-center rounded-full bg-white px-8 py-3 text-black font-medium overflow-hidden cursor-pointer"
+              className="group relative flex items-center justify-center rounded-full bg-white px-6 py-2.5 sm:px-8 sm:py-3 text-black font-medium text-sm sm:text-base overflow-hidden cursor-pointer text-center"
             >
               <span
                 className="absolute bottom-0 left-0 w-0 h-0 rounded-full transition-all duration-600 ease-out group-hover:w-[500px] group-hover:h-[500px] group-hover:-bottom-40 group-hover:-left-40"
@@ -171,7 +171,7 @@ export function Hero() {
               </span>
             </Link>
 
-            <button className="group relative flex items-center justify-center rounded-full border border-white/40 px-8 py-3 text-white font-medium overflow-hidden hover:border-white cursor-pointer">
+            <button className="group relative flex items-center justify-center rounded-full border border-white/40 bg-black sm:bg-transparent px-6 py-2.5 sm:px-8 sm:py-3 text-white font-medium text-sm sm:text-base overflow-hidden hover:border-white cursor-pointer text-center">
               <span className="absolute bottom-0 left-0 w-0 h-0 rounded-full bg-white transition-all duration-600 ease-out group-hover:w-[500px] group-hover:h-[500px] group-hover:-bottom-40 group-hover:-left-40" />
               <span className="relative z-10 transition-colors duration-300 group-hover:text-black">
                 Read the docs
@@ -182,8 +182,9 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="absolute bottom-4 left-20 z-30 flex items-center gap-2 text-[12px] text-zinc-400 tracking-widest uppercase">
-        <FaGithub className="w-3 h-3 opacity-70" />
+      {/* Powered by tag */}
+      <div className="absolute bottom-4 left-6 md:left-20 z-30 flex items-center gap-2 text-[10px] sm:text-[12px] text-zinc-200 md:text-zinc-400 tracking-widest uppercase">
+        <FaGithub className="w-3 h-3 opacity-90 md:opacity-70" />
         Powered by GitHub API
       </div>
 
