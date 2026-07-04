@@ -17,6 +17,9 @@ import {
   LayoutGrid,
   TableProperties,
   Calendar,
+  User,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
@@ -29,6 +32,11 @@ export function DashboardHeader() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  // Estados para o Modal de Perfil e Exclusão de Conta
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Estados para as configurações
   const [viewPreference, setViewPreference] = useState("cards");
@@ -103,6 +111,31 @@ export function DashboardHeader() {
     setPeriodPreference(val);
     localStorage.setItem("pref-commit-period", String(val));
     window.dispatchEvent(new Event("settings-updated"));
+  };
+
+  // Processo de remoção de conta
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch("/api/user/delete", {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setIsProfileModalOpen(false);
+        // Realiza o logout e redireciona à raiz
+        await signOut({
+          callbackUrl: "/",
+        });
+      } else {
+        const data = await response.json();
+        console.error("Failed to delete account:", data.error || "Unknown error");
+      }
+    } catch (error) {
+      console.error("Error sending delete request:", error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const isDashboardRoot = pathname === "/dashboard";
@@ -293,7 +326,19 @@ export function DashboardHeader() {
                   <p className="text-xs text-zinc-500 mt-0.5 truncate">{user?.email ?? "user@example.com"}</p>
                 </div>
 
-                <div className="p-2">
+                <div className="p-2 space-y-0.5">
+                  <button
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      setIsProfileModalOpen(true);
+                      setShowDeleteConfirm(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-colors cursor-pointer text-left"
+                  >
+                    <User className="w-4 h-4 text-zinc-500" />
+                    <span>Profile</span>
+                  </button>
+
                   <button
                     onClick={() => {
                       setIsProfileOpen(false);
@@ -301,7 +346,7 @@ export function DashboardHeader() {
                     }}
                     className="w-full flex items-center gap-3 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-colors cursor-pointer text-left"
                   >
-                    <Settings className="w-4 h-4" />
+                    <Settings className="w-4 h-4 text-zinc-500" />
                     <span>Settings</span>
                   </button>
 
@@ -326,6 +371,116 @@ export function DashboardHeader() {
           </div>
         </div>
       </header>
+
+      {/* MODAL: Profile Details & Account Management */}
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm bg-zinc-950 border border-white/[0.06] rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => {
+                setIsProfileModalOpen(false);
+                setShowDeleteConfirm(false);
+              }}
+              className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors cursor-pointer p-1 rounded-md hover:bg-white/5"
+              aria-label="Close profile details"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {!showDeleteConfirm ? (
+              <div className="space-y-6">
+                <div className="text-center space-y-3">
+                  <div className="flex justify-center">
+                    {user?.image ? (
+                      <Image
+                        src={user.image}
+                        alt="User"
+                        width={72}
+                        height={72}
+                        className="rounded-xl border border-white/10 object-cover"
+                      />
+                    ) : (
+                      <div className="w-[72px] h-[72px] rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-xl font-bold text-emerald-500">
+                        {user?.username?.charAt(0).toUpperCase() ?? "U"}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-white">
+                      Profile Details
+                    </h3>
+                    <p className="text-[11px] text-zinc-500 mt-0.5">
+                      Verify your identifier status and account settings.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 text-[12px]">
+                  <div className="flex justify-between py-1.5 border-b border-white/[0.04]">
+                    <span className="text-zinc-500">Username</span>
+                    <span className="text-white font-medium">{user?.username ?? "N/A"}</span>
+                  </div>
+                  <div className="flex justify-between py-1.5">
+                    <span className="text-zinc-500">Email</span>
+                    <span className="text-white font-medium truncate max-w-[170px]" title={user?.email}>
+                      {user?.email ?? "N/A"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="w-full py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Account
+                  </button>
+                  <button
+                    onClick={() => setIsProfileModalOpen(false)}
+                    className="w-full py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.05] text-xs font-medium cursor-pointer transition-all duration-200"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="text-center space-y-3">
+                  <div className="flex justify-center">
+                    <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <h3 className="text-base font-semibold text-white">
+                    Confirm Account Deletion
+                  </h3>
+                  <p className="text-[11px] text-zinc-500 leading-relaxed px-2">
+                    This action is completely permanent. All synchronized repositories, local configurations, and telemetry parameters will be deleted from the database.
+                  </p>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleting}
+                    className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 text-white text-xs font-semibold cursor-pointer transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    {isDeleting ? "Deleting..." : "Yes, delete my account"}
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeleting}
+                    className="w-full py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.05] text-xs font-medium cursor-pointer transition-all duration-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* MODAL: Keyboard Shortcuts */}
       {isShortcutsOpen && (
