@@ -3,7 +3,6 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaGithub, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -31,55 +30,35 @@ export const Footer = () => {
               Next-generation intelligence for GitHub repositories. 
               Built for engineering teams who value code health and velocity.
             </p>
-            <div className="flex gap-4">
-              <SocialLink icon={<FaGithub />} href="#" />
-              <SocialLink icon={<FaTwitter />} href="#" />
-              <SocialLink icon={<FaFacebook />} href="#" />
-              <SocialLink icon={<FaLinkedin />} href="#" />
-            </div>
           </div>
 
           {/* Coluna 2: Produto */}
           <div>
             <h4 className="text-white text-xs font-mono uppercase tracking-[0.2em] mb-8">Platform</h4>
             <ul className="space-y-4">
-              <FooterLink label="Security Protocol" href="#" />
-              <FooterLink label="CI/CD Integration" href="#" />
-              <FooterLink label="Technical Debt" href="#" />
-              <FooterLink label="Team Velocity" href="#" />
+              <FooterLink label="Security Protocol" href="/docs?cat=getting-started#security-standards" />
+              <FooterLink label="CI/CD Integration" href="/docs?cat=getting-started#cicd-integrations" />
             </ul>
           </div>
 
-          {/* Coluna 3: Empresa */}
+          {/* Coluna 3: Project */}
           <div>
-            <h4 className="text-white text-xs font-mono uppercase tracking-[0.2em] mb-8">Company</h4>
+            <h4 className="text-white text-xs font-mono uppercase tracking-[0.2em] mb-8">Project</h4>
             <ul className="space-y-4">
-              <FooterLink label="About Us" href="#" />
-              <FooterLink label="Documentation" href="#" />
-              <FooterLink label="Privacy Policy" href="#" />
-              <FooterLink label="Terms of Service" href="#" />
+              <FooterLink label="About" href="/docs?cat=about" />
+              <FooterLink label="Documentation" href="/docs" />
             </ul>
           </div>
 
-          {/* Coluna 4: Newsletter */}
+          {/* Coluna 4: Changelog */}
           <div className="space-y-6">
-            <h4 className="text-white text-xs font-mono uppercase tracking-[0.2em] mb-8">Stay Updated</h4>
-            <p className="text-zinc-500 text-sm font-mono leading-tight uppercase tracking-wider">
-              {">"} join_the_changelog
-            </p>
-            <form className="relative">
-              <input 
-                type="email" 
-                placeholder="engineer@email.com" 
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-300 focus:outline-none focus:border-emerald-500/50 transition-colors"
-              />
-              <button 
-                type="submit"
-                className="absolute right-2 top-1.5 bg-zinc-900 hover:bg-zinc-800 text-white text-[10px] font-mono px-3 py-1.5 rounded border border-zinc-700 transition-colors"
-              >
-                GO
-              </button>
-            </form>
+            <h4 className="text-white text-xs font-mono uppercase tracking-[0.2em] mb-8">Updates</h4>
+            <Link 
+              href="/docs?cat=changelog"
+              className="inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-zinc-400 hover:text-emerald-400 hover:border-emerald-500/30 transition-all duration-300 font-mono uppercase tracking-wider"
+            >
+              <span>{">"} read_changelog</span>
+            </Link>
           </div>
 
         </div>
@@ -94,7 +73,7 @@ export const Footer = () => {
           </div>
           
           <p className="text-zinc-600 font-mono text-[10px] uppercase tracking-widest">
-            © {currentYear} GitGraph Labs. All rights reserved.
+            © {currentYear} GitGraph. All rights reserved.
           </p>
         </div>
       </div>
@@ -115,13 +94,4 @@ const FooterLink = ({ label, href }: { label: string; href: string }) => (
       {label}
     </Link>
   </li>
-);
-
-const SocialLink = ({ icon, href }: { icon: React.ReactNode; href: string }) => (
-  <Link 
-    href={href} 
-    className="w-10 h-10 rounded-lg bg-zinc-950 border border-zinc-900 flex items-center justify-center text-zinc-500 hover:text-white hover:border-zinc-700 transition-all duration-300"
-  >
-    {icon}
-  </Link>
 );
