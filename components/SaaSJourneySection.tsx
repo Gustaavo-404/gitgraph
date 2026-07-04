@@ -110,25 +110,33 @@ export const SaaSJourneySection = () => {
 
       <div ref={triggerRef} className="relative z-10 max-w-5xl mx-auto px-4 min-h-[500vh]">
         
-        <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-white/10 -translate-x-1/2" />
+        {/* Linha de fundo cinza */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-white/10 -translate-x-1/2 z-0" />
         
+        {/* Linha de progresso verde */}
         <div 
           ref={progressLineRef}
-          className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-emerald-500 -translate-x-1/2 origin-top scale-y-0"
+          className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-emerald-500 -translate-x-1/2 origin-top scale-y-0 z-10"
         />
 
+        {/* Bolinha verde com z-20 */}
         <div 
           ref={ballRef}
-          className="absolute left-1/2 top-0 w-4 h-4 bg-emerald-400 rounded-full -translate-x-1/2 z-50 shadow-[0_0_20px_#10b981] opacity-0 pointer-events-none"
+          className="absolute left-1/2 top-0 w-4 h-4 bg-emerald-400 rounded-full -translate-x-1/2 z-20 shadow-[0_0_20px_#10b981] opacity-0 pointer-events-none"
         />
 
-        <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-[100%] pb-20">
+        {/* Botão de Finalização com z-30 para ficar à frente da linha */}
+        <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-[100%] pb-20 z-30">
           <span className="text-emerald-500 font-mono text-sm tracking-[0.4em] uppercase opacity-70 bg-black px-4 py-2 border border-emerald-500/20 rounded-full">
             Finish
           </span>
         </div>
 
-        <div className="flex flex-col gap-0">
+        {/* 
+          🔥 CONTEINER DOS CARDS ATUALIZADO (relative z-30)
+          Elevamos o container pai inteiro para garantir que todos os cards fiquem à frente das linhas e da bolinha
+        */}
+        <div className="relative z-30 flex flex-col gap-0">
           {STEPS.map((step, i) => (
             <div 
               key={i} 
@@ -155,7 +163,7 @@ export const SaaSJourneySection = () => {
                     </p>
                   </div>
                   
-                  {/* 🔥 Container corrigido */}
+                  {/* Container da imagem */}
                   <div className="mt-6 relative aspect-video w-full rounded-xl border border-white/5 overflow-hidden bg-black/40">
                     <Image
                       src={`/steps/step${i + 1}.png`}
