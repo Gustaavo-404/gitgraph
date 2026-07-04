@@ -2,12 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { getProjectById } from "@/lib/project-service";
 
 export async function GET(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  
+
   const session = await getServerSession(authOptions);
   const params = await context.params;
 
@@ -18,12 +19,10 @@ export async function GET(
   const projectId = params.id;
 
   try {
-    const project = await prisma.project.findFirst({
-      where: {
-        id: projectId,
-        userId: session.user.id,
-      },
-    });
+    const project = await getProjectById(
+      projectId,
+      session.user.id
+    );
 
     if (!project) {
       return new Response("Not found", { status: 404 });
