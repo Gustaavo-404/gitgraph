@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GitGraph – Advanced GitHub Analytics",
+  title: "GitGraph",
   description:
     "Analyze GitHub repositories through interactive dashboards, contributor insights, language metrics, commit history and exportable reports.",
 
