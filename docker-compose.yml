@@ -1,0 +1,16 @@
+services:
+  gitgraph:
+    build:
+      context: .
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+
+    container_name: gitgraph
+
+    ports:
+      - "3000:3000"
+
+    env_file:
+      - .env
+
+    restart: unless-stopped
