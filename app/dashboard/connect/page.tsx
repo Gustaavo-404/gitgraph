@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { FaGithub, FaCheck, FaPlus, FaSearch } from "react-icons/fa";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { useProjects } from "@/lib/hooks/useProjects";
-import Link from "next/link";
 
 export default function ConnectPage() {
   const { data: projects, isLoading: projectsLoading } = useProjects();
@@ -17,39 +16,57 @@ export default function ConnectPage() {
     fetch("/api/github/repos")
       .then(res => res.json())
       .then(data => {
-        setRepos(data);
+        if (Array.isArray(data)) {
+          setRepos(data);
+        } else {
+          setRepos([]);
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setRepos([]);
+        setLoading(false);
+      });
   }, []);
 
-  // Filtra de forma eficiente os repositórios que já possuem projetos conectados
+  // Filtra de forma eficiente os nomes dos projetos do banco de dados (usa apenas fullName)
   const connectedNames = useMemo(() => {
-    if (!projects) return new Set<string>();
-    return new Set(projects.map(p => p.fullName.toLowerCase()));
+    if (!projects || !Array.isArray(projects)) return new Set<string>();
+    return new Set(
+      projects
+        .map(p => p?.fullName?.toLowerCase()) // Resolvido: usa apenas o campo existente no tipo Project
+        .filter((name): name is string => typeof name === "string")
+    );
   }, [projects]);
 
-  // Filtra por conectividade e pela barra de busca
+  // Filtra os repositórios da API do GitHub aceitando fullName ou full_name de forma flexível
   const filteredRepos = useMemo(() => {
+    if (!Array.isArray(repos)) return [];
+    
     return repos
-      .filter(r => !connectedNames.has(r.full_name.toLowerCase()))
-      .filter(r => r.name.toLowerCase().includes(search.toLowerCase()));
+      .filter(r => {
+        if (!r) return false;
+        const fullName = r.full_name || r.fullName;
+        if (typeof fullName !== "string") return false;
+        return !connectedNames.has(fullName.toLowerCase());
+      })
+      .filter(r => r && typeof r.name === "string" && r.name.toLowerCase().includes(search.toLowerCase()));
   }, [repos, connectedNames, search]);
 
   const allFilteredSelected = useMemo(() => {
     if (filteredRepos.length === 0) return false;
-    return filteredRepos.every(r => selected.includes(r.id));
+    return filteredRepos.every(r => r && selected.includes(String(r.id)));
   }, [filteredRepos, selected]);
 
-  const toggle = (id: string) => {
+  const toggle = (id: string | number) => {
+    const idStr = String(id);
     setSelected(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+      prev.includes(idStr) ? prev.filter(x => x !== idStr) : [...prev, idStr]
     );
   };
 
-  // Seleciona ou desmarca apenas os repositórios visíveis conforme o filtro ativo
   const handleSelectAllFiltered = () => {
-    const filteredIds = filteredRepos.map(r => r.id);
+    const filteredIds = filteredRepos.map(r => String(r.id));
     if (allFilteredSelected) {
       setSelected(prev => prev.filter(id => !filteredIds.includes(id)));
     } else {
@@ -63,7 +80,7 @@ export default function ConnectPage() {
   const connect = async () => {
     await Promise.all(
       selected.map(id => {
-        const repo = repos.find(r => r.id == id);
+        const repo = repos.find(r => r && String(r.id) === String(id));
         if (!repo) return Promise.resolve();
         return fetch("/api/projects", {
           method: "POST",
@@ -71,7 +88,7 @@ export default function ConnectPage() {
             provider: "github",
             externalId: String(repo.id),
             name: repo.name,
-            fullName: repo.full_name,
+            fullName: repo.full_name || repo.fullName,
           }),
         });
       })
@@ -150,7 +167,8 @@ export default function ConnectPage() {
       {!isLoading && filteredRepos.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredRepos.map((repo) => {
-            const isSelected = selected.includes(repo.id);
+            const isSelected = selected.includes(String(repo.id));
+            const fullName = repo.full_name || repo.fullName;
             return (
               <div
                 key={repo.id}
@@ -179,7 +197,7 @@ export default function ConnectPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-semibold text-white truncate">{repo.name}</h3>
-                    <p className="text-sm text-zinc-500 truncate mt-1">{repo.full_name}</p>
+                    <p className="text-sm text-zinc-500 truncate mt-1">{fullName}</p>
                   </div>
                 </div>
 

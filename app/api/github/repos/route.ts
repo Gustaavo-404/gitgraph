@@ -20,11 +20,13 @@ export async function GET() {
 
   const data = await res.json();
 
-  // Mapeia e padroniza a resposta para o frontend
+  // Mapeia e padroniza a resposta mantendo compatibilidade dupla
   const mappedData = data.map((repo: any) => ({
-    id: String(repo.id), // Garante que seja string para bater com p.id no frontend
+    id: String(repo.id),
     name: repo.name,
-    fullName: repo.full_name,
+    fullName: repo.full_name,       // Padrão camelCase
+    full_name: repo.full_name,      // Mantido para compatibilidade com o frontend
+    private: repo.private,          // Adicionado para a badge de privado
     stars: repo.stargazers_count,
     forks: repo.forks_count,
     openIssues: repo.open_issues_count,
