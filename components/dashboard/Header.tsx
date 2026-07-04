@@ -4,10 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useUser } from "@/lib/hooks/useUser";
 import { useProjects } from "@/lib/hooks/useProjects";
-import { 
-  HelpCircle, 
-  LogOut, 
-  Settings, 
+import { signOut } from "next-auth/react";
+import {
+  HelpCircle,
+  LogOut,
+  Settings,
   BookOpen,
   LifeBuoy,
   History,
@@ -28,7 +29,7 @@ export function DashboardHeader() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  
+
   // Estados para as configurações
   const [viewPreference, setViewPreference] = useState("cards");
   const [periodPreference, setPeriodPreference] = useState(0);
@@ -120,19 +121,19 @@ export function DashboardHeader() {
         <div className="flex items-center gap-3 md:gap-5 min-w-0 flex-1 mr-2">
           <Link href="/dashboard" className="relative group cursor-pointer shrink-0">
             <div className="absolute -inset-2" />
-            <Image 
-              src="/logo.png" 
-              alt="GitGraph" 
-              width={24} 
-              height={24} 
+            <Image
+              src="/logo.png"
+              alt="GitGraph"
+              width={24}
+              height={24}
               className="relative animate-in fade-in duration-300"
             />
           </Link>
 
           <nav className="flex items-center gap-1.5 md:gap-3 text-[13px] font-medium tracking-tight min-w-0">
             <span className="text-zinc-700 font-light select-none">/</span>
-            
-            <Link 
+
+            <Link
               href="/dashboard"
               className="hidden sm:inline text-zinc-500 hover:text-zinc-300 transition-colors truncate"
             >
@@ -141,13 +142,12 @@ export function DashboardHeader() {
 
             <span className="hidden sm:inline text-zinc-700 font-light select-none">/</span>
 
-            <Link 
+            <Link
               href="/dashboard"
-              className={`transition-colors truncate ${
-                isDashboardRoot
+              className={`transition-colors truncate ${isDashboardRoot
                   ? "text-white font-semibold inline"
                   : "hidden sm:inline text-zinc-500 hover:text-zinc-300"
-              }`}
+                }`}
             >
               console
             </Link>
@@ -155,13 +155,12 @@ export function DashboardHeader() {
             {projectName && (
               <>
                 <span className="text-zinc-700 font-light select-none">/</span>
-                <Link 
+                <Link
                   href={`/dashboard/${projectId}`}
-                  className={`transition-colors truncate max-w-[100px] sm:max-w-[200px] ${
-                    !isReports
+                  className={`transition-colors truncate max-w-[100px] sm:max-w-[200px] ${!isReports
                       ? "text-white font-semibold"
                       : "text-zinc-500 hover:text-zinc-300"
-                  }`}
+                    }`}
                 >
                   {projectName}
                 </Link>
@@ -171,7 +170,7 @@ export function DashboardHeader() {
             {isReports && (
               <>
                 <span className="text-zinc-700 font-light select-none">/</span>
-                <Link 
+                <Link
                   href={`/dashboard/${projectId}/reports`}
                   className="text-white font-semibold transition-colors shrink-0"
                 >
@@ -309,9 +308,12 @@ export function DashboardHeader() {
                   <div className="border-t border-zinc-800 my-2" />
 
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setIsProfileOpen(false);
-                      console.log("Logout");
+
+                      await signOut({
+                        callbackUrl: "/",
+                      });
                     }}
                     className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
                   >
@@ -399,22 +401,20 @@ export function DashboardHeader() {
                 <div className="grid grid-cols-2 gap-2 bg-white/[0.02] border border-white/[0.05] rounded-xl p-1">
                   <button
                     onClick={() => handleUpdateView("cards")}
-                    className={`flex items-center justify-center gap-2 py-2 text-xs rounded-lg transition-all cursor-pointer ${
-                      viewPreference === "cards"
+                    className={`flex items-center justify-center gap-2 py-2 text-xs rounded-lg transition-all cursor-pointer ${viewPreference === "cards"
                         ? "bg-[#57e071] text-black font-semibold"
                         : "text-zinc-400 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
                     Cards
                   </button>
                   <button
                     onClick={() => handleUpdateView("table")}
-                    className={`flex items-center justify-center gap-2 py-2 text-xs rounded-lg transition-all cursor-pointer ${
-                      viewPreference === "table"
+                    className={`flex items-center justify-center gap-2 py-2 text-xs rounded-lg transition-all cursor-pointer ${viewPreference === "table"
                         ? "bg-[#57e071] text-black font-semibold"
                         : "text-zinc-400 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <TableProperties className="w-3.5 h-3.5" />
                     Table
@@ -437,11 +437,10 @@ export function DashboardHeader() {
                     <button
                       key={item.val}
                       onClick={() => handleUpdatePeriod(item.val)}
-                      className={`py-2 text-[10px] font-mono rounded-md transition-all cursor-pointer ${
-                        periodPreference === item.val
+                      className={`py-2 text-[10px] font-mono rounded-md transition-all cursor-pointer ${periodPreference === item.val
                           ? "bg-[#57e071] text-black font-bold"
                           : "text-zinc-400 hover:text-white"
-                      }`}
+                        }`}
                     >
                       {item.label}
                     </button>
