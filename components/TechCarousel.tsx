@@ -13,21 +13,21 @@ const logos = [
 
 export function TechCarousel() {
   return (
-    <section className="relative w-full overflow-hidden bg-black py-16">
+    <section className="relative w-full overflow-hidden bg-black py-10 md:py-16">
       
       {/* Fade edges */}
-      <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-32 bg-gradient-to-r from-black to-transparent" />
-      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-32 bg-gradient-to-l from-black to-transparent" />
+      <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-12 sm:w-20 md:w-32 bg-gradient-to-r from-black to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 sm:w-20 md:w-32 bg-gradient-to-l from-black to-transparent" />
 
-      <div className="flex w-max animate-scroll gap-20 px-8">
+      <div className="flex w-max animate-scroll gap-10 sm:gap-16 md:gap-20 px-4 sm:px-8">
         {[...logos, ...logos].map((logo, i) => (
-          <div key={i} className="flex items-center opacity-80 hover:opacity-100 transition">
+          <div key={i} className="flex items-center opacity-60 md:opacity-80 hover:opacity-100 transition duration-300">
             <Image
               src={logo.src}
               alt={logo.alt}
               width={160}
               height={40}
-              className="h-10 w-auto object-contain"
+              className="h-7 sm:h-8 md:h-10 w-auto object-contain"
               priority={i < logos.length}
             />
           </div>
