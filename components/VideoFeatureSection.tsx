@@ -48,8 +48,9 @@ export const VideoFeatureSection = () => {
   }, { scope: sectionRef });
 
   return (
-    <section
+    <section 
       ref={sectionRef}
+      id="workflow"
       className="relative w-full min-h-screen bg-black flex flex-col items-center justify-center py-32 px-10"
     >
       {/* TOP GREEN LINE */}

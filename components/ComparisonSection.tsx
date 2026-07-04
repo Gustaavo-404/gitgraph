@@ -96,7 +96,7 @@ export const ComparisonSection = () => {
     }, { scope: containerRef });
 
     return (
-        <section className="relative w-full bg-black px-10 py-32">
+        <section id="comparison" className="relative w-full bg-black px-10 py-32">
 
             {/* TOP GREEN LINE */}
             <div

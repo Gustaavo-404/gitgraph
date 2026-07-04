@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation"; // Hook importado para monitoramento de query
 import { FaGithub, FaChevronDown, FaLinkedin } from "react-icons/fa";
 import {
   BookOpen,
@@ -45,6 +46,7 @@ const CHAPTERS_MAP: Record<CategoryType, Chapter[]> = {
     { id: "authentication", title: "GitHub OAuth Config", desc: "Secure authentication pipeline configured via NextAuth.js.", icon: Key },
     { id: "node-connection", title: "Node Ingestion", desc: "Sync repositories as individual nodes inside the workspace schema.", icon: Database },
     { id: "analytics-engine", title: "Classification Engine", desc: "Maturity metrics, risk profiling, and score calculation.", icon: LineChart },
+    { id: "cicd-integrations", title: "CI/CD Integrations", desc: "Trigger automated code health checks inside workflows.", icon: Code },
     { id: "export-protocols", title: "Export Protocols", desc: "Extract parsed project data to CSV, PDF, or JSON schemas.", icon: Download },
     { id: "security-standards", title: "Security Standards", desc: "SOC2 compliance, VPC-isolation, and zero-cloning standards.", icon: ShieldAlert },
   ],
@@ -59,7 +61,7 @@ const CHAPTERS_MAP: Record<CategoryType, Chapter[]> = {
   ]
 };
 
-export default function DocsPageClient() {
+function DocsContent() {
   const [activeCategory, setActiveCategory] = useState<CategoryType>("getting-started");
   const [activeSection, setActiveSection] = useState<string>("introduction");
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,6 +70,9 @@ export default function DocsPageClient() {
 
   const observer = useRef<IntersectionObserver | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  
+  const searchParams = useSearchParams();
+  const catParam = searchParams.get("cat");
 
   // Escuta o atalho Cmd+K / Ctrl+K para abrir a busca
   useEffect(() => {
@@ -91,22 +96,35 @@ export default function DocsPageClient() {
     }
   }, [isSearchOpen]);
 
-  // Altera a categoria ativa baseado no parâmetro ?cat= na URL ao carregar a página
+  // Altera a categoria ativa baseado nos parâmetros e âncoras de hash ao carregar a página ou clicar nos links do menu
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const cat = params.get("cat") as CategoryType | null;
-      if (cat && CHAPTERS_MAP[cat]) {
-        setActiveCategory(cat);
-        const firstChapterId = CHAPTERS_MAP[cat][0]?.id;
-        if (firstChapterId) {
-          setTimeout(() => {
-            scrollToSection(firstChapterId);
-          }, 150);
+      const hash = window.location.hash.replace("#", "");
+      let resolvedCategory = activeCategory;
+
+      if (catParam && CHAPTERS_MAP[catParam as CategoryType]) {
+        resolvedCategory = catParam as CategoryType;
+      } 
+      else if (hash) {
+        const foundCategory = Object.keys(CHAPTERS_MAP).find((categoryKey) =>
+          CHAPTERS_MAP[categoryKey as CategoryType].some((chapter) => chapter.id === hash)
+        ) as CategoryType | undefined;
+
+        if (foundCategory) {
+          resolvedCategory = foundCategory;
         }
       }
+
+      setActiveCategory(resolvedCategory);
+      const targetId = hash || CHAPTERS_MAP[resolvedCategory][0]?.id;
+
+      if (targetId) {
+        setTimeout(() => {
+          scrollToSection(targetId);
+        }, 200);
+      }
     }
-  }, []);
+  }, [catParam]); // O efeito reage ativamente a mudanças no parâmetro 'cat' da URL
 
   // Monitora qual seção está visível para atualizar o menu lateral
   useEffect(() => {
@@ -479,7 +497,7 @@ export default function DocsPageClient() {
 
         <div className="flex flex-col lg:flex-row gap-12 relative items-start w-full">
 
-          {/* ================= SIDEBAR LATERAL (Escondida em Mobile/Tablet) ================= */}
+          {/* ================= SIDEBAR LATERAL ================= */}
           <aside className="hidden lg:block w-64 shrink-0 lg:sticky lg:top-36 self-start space-y-2 border-b lg:border-b-0 pb-6 lg:pb-0 border-zinc-900">
             <span className="font-mono text-[9px] text-zinc-600 block mb-4 uppercase tracking-widest">
               Sections ({CHAPTERS_MAP[activeCategory].length})
@@ -747,10 +765,52 @@ export default function DocsPageClient() {
                   </div>
                 </section>
 
+                {/* Section: CI/CD Integrations */}
+                <section id="cicd-integrations" className="scroll-mt-32 space-y-6">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[#57e071] text-xs">[05]</span>
+                    <h2 className="text-2xl font-light text-white tracking-tight">CI/CD Integrations</h2>
+                  </div>
+                  <p className="text-zinc-500 leading-relaxed text-base">
+                    Automate your repository governance by integrating GitGraph checks directly into your CI/CD pipelines. This allows you to block pull requests that fall below a specified code health threshold or trigger webhooks automatically.
+                  </p>
+
+                  <div className="rounded-xl border border-zinc-900 bg-[#050505] overflow-hidden max-w-full">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-900 bg-[#0a0a0a]">
+                      <div className="flex items-center gap-2">
+                        <Terminal className="w-3.5 h-3.5 text-zinc-500" />
+                        <span className="font-mono text-[10px] text-zinc-400">
+                          .github/workflows/gitgraph-check.yml
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-mono text-zinc-600">YAML</span>
+                    </div>
+                    <pre className="p-5 overflow-x-auto font-mono text-xs leading-relaxed text-[#abb2bf] bg-[#050505] max-w-full">
+                      <code>
+                        <div><span className="text-[#e06c75]">name</span>: <span className="text-[#98c379]">GitGraph Telemetry Check</span></div>
+                        <div><span className="text-[#e06c75]">on</span>:</div>
+                        <div className="pl-4"><span className="text-[#e06c75]">pull_request</span>:</div>
+                        <div className="pl-6"><span className="text-[#e06c75]">branches</span>: [ <span className="text-[#98c379]">main, develop</span> ]</div>
+                        <div className="my-1" />
+                        <div><span className="text-[#e06c75]">jobs</span>:</div>
+                        <div className="pl-4"><span className="text-[#e06c75]">quality-gate</span>:</div>
+                        <div className="pl-6"><span className="text-[#e06c75]">runs-on</span>: <span className="text-[#98c379]">ubuntu-latest</span></div>
+                        <div className="pl-6"><span className="text-[#e06c75]">steps</span>:</div>
+                        <div className="pl-8">- <span className="text-[#e06c75]">name</span>: <span className="text-[#98c379]">Request Project Telemetry</span></div>
+                        <div className="pl-10"><span className="text-[#e06c75]">run</span>: |</div>
+                        <div className="pl-12 text-[#5c6370]"># Query the active telemetry engine and fail if Code Health is below 80</div>
+                        <div className="pl-12">curl -fsS -X POST https://gitgraph.dev/api/v1/projects/check \</div>
+                        <div className="pl-14">-H <span className="text-[#98c379]">"Authorization: Bearer \${"{"}{"{"} secrets.GITGRAPH_API_TOKEN {"}"}{"}"}"</span> \</div>
+                        <div className="pl-14">-d <span className="text-[#98c379]">'{"{"} "minHealthScore": 80 {"}"}'</span></div>
+                      </code>
+                    </pre>
+                  </div>
+                </section>
+
                 {/* Section: Export Protocols */}
                 <section id="export-protocols" className="scroll-mt-32 space-y-6">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[#57e071] text-xs">[05]</span>
+                    <span className="font-mono text-[#57e071] text-xs">[06]</span>
                     <h2 className="text-2xl font-light text-white tracking-tight">Export Protocols & Integrations</h2>
                   </div>
                   <p className="text-zinc-500 leading-relaxed text-base">
@@ -839,7 +899,7 @@ export default function DocsPageClient() {
                 {/* Section: Security Standards */}
                 <section id="security-standards" className="scroll-mt-32 space-y-6">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[#57e071] text-xs">[06]</span>
+                    <span className="font-mono text-[#57e071] text-xs">[07]</span>
                     <h2 className="text-2xl font-light text-white tracking-tight">Security Standards</h2>
                   </div>
                   <div className="p-0.5 bg-gradient-to-br from-zinc-800 to-transparent rounded-2xl max-w-full overflow-hidden">
@@ -1146,5 +1206,14 @@ export default function DocsPageClient() {
       )}
 
     </div>
+  );
+}
+
+// Exportamos o componente com um wrapper de Suspense interno e autocontido
+export default function DocsPageClient() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#030303] text-zinc-500 pt-32 text-center text-sm font-mono">Carregando documentação...</div>}>
+      <DocsContent />
+    </Suspense>
   );
 }

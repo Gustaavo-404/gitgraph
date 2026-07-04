@@ -35,6 +35,7 @@ export const SecuritySection = () => {
   return (
     <section 
       ref={containerRef} 
+      id="security"
       className="relative w-full py-32 bg-[#030303] overflow-hidden border-t border-zinc-900"
     >
       {/* TOP GREEN LINE ANIMADA */}

@@ -114,6 +114,7 @@ export function HorizontalFeature() {
   return (
     <section
       ref={sectionRef}
+      id="horizontal-feature"
       className="relative h-screen w-full overflow-hidden bg-[#030303] text-white"
     >
       {/* BACKGROUND UI - GRID */}
@@ -149,7 +150,7 @@ export function HorizontalFeature() {
       <div ref={wrapRef} className="flex h-full">
 
         {/* Painel 1 */}
-        <div className="panel flex h-full w-screen shrink-0 items-start md:items-center px-6 sm:px-12 md:px-24 pt-24 md:pt-0">
+        <div id="analytics" className="panel flex h-full w-screen shrink-0 items-start md:items-center px-6 sm:px-12 md:px-24 pt-24 md:pt-0">
           <div className="max-w-2xl w-full">
             <div className="mb-3 md:mb-4 flex items-center gap-2">
               <span className="h-px w-8 bg-[#57e071]" />
@@ -184,7 +185,7 @@ export function HorizontalFeature() {
         </div>
 
         {/* Painel 2 */}
-        <div className="panel flex h-full w-screen shrink-0 items-start md:items-center px-6 sm:px-12 md:px-24 pt-24 md:pt-0">
+        <div id="insights" className="panel flex h-full w-screen shrink-0 items-start md:items-center px-6 sm:px-12 md:px-24 pt-24 md:pt-0">
           <div className="max-w-2xl w-full">
             <div className="mb-3 md:mb-4 flex items-center gap-2">
               <span className="h-px w-8 bg-[#57e071]" />
@@ -218,7 +219,7 @@ export function HorizontalFeature() {
         </div>
 
         {/* Painel 3 */}
-        <div className="panel flex h-full w-screen shrink-0 items-start md:items-center px-6 sm:px-12 md:px-24 pt-24 md:pt-0">
+        <div id="reports" className="panel flex h-full w-screen shrink-0 items-start md:items-center px-6 sm:px-12 md:px-24 pt-24 md:pt-0">
           <div className="max-w-2xl w-full">
             <div className="mb-3 md:mb-4 flex items-center gap-2">
               <span className="h-px w-8 bg-[#57e071]" />

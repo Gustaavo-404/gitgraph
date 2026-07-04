@@ -11,6 +11,7 @@ import { SaaSJourneySection } from "@/components/SaaSJourneySection";
 import { FinalCTASection } from "@/components/FinalCTASection";
 import { Footer } from "@/components/Footer";
 import DevIndicatorRemover from "@/components/DevIndicatorRemover";
+import { HashScrollHandler } from "@/components/HashScrollHandler"; // <-- Importe aqui
 
 export const metadata: Metadata = {
   title: "GitGraph – Understand your codebase",
@@ -18,10 +19,16 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-
   return (
     <main className="bg-black font-sans">
       <DevIndicatorRemover />
+      
+      {/* 
+        Injetamos o manipulador de scroll cliente aqui. 
+        Ele roda silenciosamente em segundo plano assim que a página é montada.
+      */}
+      <HashScrollHandler /> 
+      
       <Header />
       <Hero />
       <TechCarousel />
