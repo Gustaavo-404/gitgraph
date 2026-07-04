@@ -15,8 +15,12 @@ import {
   FaSort,
   FaSortUp,
   FaSortDown,
+  FaTrash,
+  FaSpinner,
+  FaPlus,
 } from "react-icons/fa";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { X, AlertTriangle, Trash2 } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 
 // Hook de animação local
@@ -73,9 +77,27 @@ export default function NodeManagerClient() {
   const [projectDetails, setProjectDetails] = useState<Record<string, ExtendedProjectStats>>({});
   const [loadingDetails, setLoadingDetails] = useState(true);
 
+  // Estados para controle de seleção e exclusão
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Estado para o Modal Customizado de Confirmação de Exclusão
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: "single" | "bulk";
+    id?: string;
+    name?: string;
+    count?: number;
+  } | null>(null);
+
   // Buscar detalhes adicionais (commits, health) para cada projeto
   useEffect(() => {
-    if (!projects || projects.length === 0) return;
+    if (!projects) return;
+
+    // Se não houver projetos conectados, encerra o loading local imediatamente
+    if (projects.length === 0) {
+      setLoadingDetails(false);
+      return;
+    }
 
     const fetchDetails = async () => {
       const detailsMap: Record<string, ExtendedProjectStats> = {};
@@ -171,6 +193,80 @@ export default function NodeManagerClient() {
     return list;
   }, [projects, projectDetails, search, languageFilter, sortField, sortDirection]);
 
+  // Funções para controle de seleção
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const isAllSelected = useMemo(() => {
+    return (
+      filteredProjects.length > 0 &&
+      filteredProjects.every(p => selectedIds.has(p.id))
+    );
+  }, [filteredProjects, selectedIds]);
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        filteredProjects.forEach(p => next.delete(p.id));
+        return next;
+      });
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        filteredProjects.forEach(p => next.add(p.id));
+        return next;
+      });
+    }
+  };
+
+  // Triggers para abrir o modal de confirmação
+  const promptDeleteSingle = (id: string, name: string) => {
+    setDeleteTarget({ type: "single", id, name });
+  };
+
+  const promptDeleteBulk = () => {
+    setDeleteTarget({ type: "bulk", count: selectedIds.size });
+  };
+
+  // Processamento real da exclusão após confirmação no modal
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    setIsDeleting(true);
+    try {
+      if (deleteTarget.type === "single" && deleteTarget.id) {
+        const res = await fetch(`/api/projects/${deleteTarget.id}`, { method: "DELETE" });
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert("Failed to delete project.");
+        }
+      } else if (deleteTarget.type === "bulk") {
+        const deletePromises = Array.from(selectedIds).map(id =>
+          fetch(`/api/projects/${id}`, { method: "DELETE" })
+        );
+        await Promise.all(deletePromises);
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error("Error in project deletion:", err);
+      alert("An error occurred during deletion.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
+
   // Calcular prioridade baseada em regras simples
   const getPriority = (p: ExtendedProjectStats): { label: string; color: string } => {
     if (p.healthScore < 40) return { label: "Critical", color: "text-red-400 border-red-400/30 bg-red-400/10" };
@@ -202,21 +298,21 @@ export default function NodeManagerClient() {
     return <NodeManagerSkeleton />;
   }
 
+  // Renderiza a mesma tela de estado vazio padronizada do Dashboard
   if (!projects || projects.length === 0) {
     return (
       <div className="pt-14 pb-20 flex flex-col items-center justify-center min-h-[70vh] text-center px-4 gap-8 animate-in fade-in duration-700">
         <div className="relative">
-          <div className="w-24 h-24 bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 rounded-2xl border border-zinc-700/50 flex items-center justify-center backdrop-blur-sm">
-            <FaGithub className="text-4xl text-zinc-500" />
+          <div className="w-24 h-24 rounded-full border-2 border-zinc-700/80 flex items-center justify-center backdrop-blur-sm bg-zinc-900/20">
+            <div className="w-[68px] h-[68px] border-2 border-zinc-700/80 rotate-45" />
           </div>
         </div>
-        <h1 className="text-3xl font-light text-white">No nodes to compare</h1>
-        <p className="text-zinc-500 max-w-md">Connect repositories first to start comparing.</p>
+        <h1 className="text-3xl font-light text-white">No nodes detected in network</h1>
         <Link
           href="/dashboard/connect"
-          className="group relative inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#57e071] to-[#3fa855] px-8 py-4 text-black font-semibold hover:opacity-90 transition-all duration-300 shadow-lg shadow-[#57e071]/20"
+          className="group relative inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#57e071] to-[#3fa855] px-8 py-4 text-black font-semibold hover:opacity-90 transition-all duration-300 shadow-lg shadow-[#57e071]/20 hover:shadow-xl hover:shadow-[#57e071]/30"
         >
-          Connect Repository
+          <FaPlus className="transition-transform group-hover:rotate-90" /> Connect Repository
         </Link>
       </div>
     );
@@ -240,6 +336,17 @@ export default function NodeManagerClient() {
 
         {/* Controles Responsivos */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          {/* Botão de Excluir Selecionados */}
+          {selectedIds.size > 0 && (
+            <button
+              onClick={promptDeleteBulk}
+              className="inline-flex items-center justify-center gap-2 bg-red-950/30 hover:bg-red-900/40 border border-red-800/50 rounded-xl px-4 py-2.5 text-red-400 text-sm font-medium transition-all duration-300 shadow-lg shadow-red-950/10 cursor-pointer"
+            >
+              <FaTrash className="text-xs animate-pulse" />
+              <span>Delete Selected ({selectedIds.size})</span>
+            </button>
+          )}
+
           {/* Filtro por linguagem */}
           <select
             value={languageFilter}
@@ -267,12 +374,21 @@ export default function NodeManagerClient() {
         </div>
       </header>
 
-      {/* Tabela de comparação com Rolagem Horizontal Ativa */}
+      {/* Tabela de comparação */}
       <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 backdrop-blur-sm border border-zinc-800/50 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto w-full">
-          <table className="w-full text-sm text-left min-w-[850px]">
+          <table className="w-full text-sm text-left min-w-[950px]">
             <thead className="bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 text-zinc-300 text-xs uppercase tracking-wider">
               <tr>
+                {/* Custom Checkbox de Selecionar Todos */}
+                <th className="px-6 py-4 w-14 text-center">
+                  <div className="flex justify-center">
+                    <CustomCheckbox
+                      checked={isAllSelected}
+                      onChange={toggleSelectAll}
+                    />
+                  </div>
+                </th>
                 <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort("name")}>
                   <div className="flex items-center gap-1">
                     Repository <SortIcon field="name" />
@@ -305,6 +421,7 @@ export default function NodeManagerClient() {
                   </div>
                 </th>
                 <th className="px-6 py-4 font-medium text-center">Priority</th>
+                <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/50">
@@ -312,6 +429,15 @@ export default function NodeManagerClient() {
                 const priority = getPriority(p);
                 return (
                   <tr key={p.id} className="group hover:bg-zinc-800/20 transition-colors duration-200">
+                    {/* Custom Checkbox Individual */}
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex justify-center">
+                        <CustomCheckbox
+                          checked={selectedIds.has(p.id)}
+                          onChange={() => toggleSelect(p.id)}
+                        />
+                      </div>
+                    </td>
                     <td className="px-6 py-4 font-medium text-white">
                       <Link href={`/dashboard/${p.id}`} className="hover:text-[#57e071] transition-colors flex items-center gap-2 truncate max-w-xs">
                         <FaGithub className="text-zinc-500 flex-shrink-0" />
@@ -337,6 +463,15 @@ export default function NodeManagerClient() {
                       <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full border ${priority.color}`}>
                         {priority.label}
                       </span>
+                    </td>
+                    {/* Ação de Exclusão Individual */}
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => promptDeleteSingle(p.id, p.fullName)}
+                        className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 text-xs font-medium transition-colors cursor-pointer"
+                      >
+                        Delete <FaTrash className="w-3 h-3" />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -370,13 +505,112 @@ export default function NodeManagerClient() {
 
       {/* Footer com dica */}
       <div className="text-xs text-zinc-700 text-center pt-4 border-t border-zinc-800/50">
-        <span>Click on column headers to sort • Hover over rows for more options</span>
+        <span>Click on column headers to sort • Use checkboxes for bulk actions</span>
       </div>
+
+      {/* MODAL: Custom Confirmation Modal for Deletion */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm bg-zinc-950 border border-white/[0.06] rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setDeleteTarget(null)}
+              disabled={isDeleting}
+              className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors cursor-pointer p-1 rounded-md hover:bg-white/5 disabled:opacity-50"
+              aria-label="Close modal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="space-y-5">
+              <div className="text-center space-y-3">
+                <div className="flex justify-center">
+                  <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                </div>
+                <h3 className="text-base font-semibold text-white">
+                  {deleteTarget.type === "single"
+                    ? "Confirm Node Purge"
+                    : "Confirm Bulk Node Purge"}
+                </h3>
+                <p className="text-[11px] text-zinc-500 leading-relaxed px-2">
+                  {deleteTarget.type === "single" ? (
+                    <>
+                      Are you sure you want to purge <span className="text-zinc-300 font-mono font-medium">{deleteTarget.name}</span>? All synchronized metrics and telemetry for this node will be removed.
+                    </>
+                  ) : (
+                    <>
+                      Are you sure you want to purge <span className="text-zinc-300 font-mono font-medium">{deleteTarget.count} selected nodes</span>? All synchronized metrics and telemetry for these nodes will be removed.
+                    </>
+                  )}
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <button
+                  onClick={confirmDelete}
+                  disabled={isDeleting}
+                  className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 text-white text-xs font-semibold cursor-pointer transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <FaSpinner className="animate-spin text-xs" />
+                      <span>Purging...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      <span>Confirm Purge</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => setDeleteTarget(null)}
+                  disabled={isDeleting}
+                  className="w-full py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.05] text-xs font-medium cursor-pointer transition-all duration-200 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* --- Componentes auxiliares --- */
+
+interface CustomCheckboxProps {
+  checked: boolean;
+  onChange: () => void;
+  ariaLabel?: string;
+}
+
+function CustomCheckbox({ checked, onChange, ariaLabel }: CustomCheckboxProps) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange();
+      }}
+      aria-label={ariaLabel || "Select node"}
+      className={`group relative w-5 h-5 rounded-md border flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#57e071]/50 ${
+        checked
+          ? "border-[#57e071] bg-[#57e071]/10 shadow-[0_0_10px_rgba(87,224,113,0.15)]"
+          : "border-zinc-800 bg-zinc-950/80 hover:border-zinc-700 hover:bg-zinc-900"
+      }`}
+    >
+      <span
+        className={`w-2.5 h-2.5 rounded-sm bg-[#57e071] shadow-[0_0_6px_#57e071] transition-all duration-300 cubic-bezier(0.175, 0.885, 0.32, 1.275) ${
+          checked ? "scale-100 opacity-100" : "scale-0 opacity-0"
+        }`}
+      />
+    </button>
+  );
+}
 
 function QuickInsightCard({ title, value, icon, description }: { title: string; value: number; icon: React.ReactNode; description: string }) {
   return (
