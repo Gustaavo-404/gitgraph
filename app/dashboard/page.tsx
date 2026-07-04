@@ -32,11 +32,11 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [openExportMenu, setOpenExportMenu] = useState(false);
-  
+
   // Estados para filtros e visualização
   const [commitPeriod, setCommitPeriod] = useState<number>(0);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
-  
+
   const [commitData, setCommitData] = useState<CommitData[]>([]);
   const [languageData, setLanguageData] = useState<LanguageData>({});
   const [projectLanguages, setProjectLanguages] = useState<Record<string, string>>({});
@@ -180,7 +180,7 @@ export default function Dashboard() {
 
   const exportData = (format: "csv" | "json" | "pdf") => {
     const dataToExport = filteredProjects.map(p => {
-      const s = stats?.find(stat => stat.id === p.id);
+      const s = stats?.find(stat => stat.fullName === p.fullName);
       return {
         name: p.fullName,
         language: projectLanguages[p.id] || "Unknown",
@@ -309,7 +309,7 @@ export default function Dashboard() {
               Instances: <span className="text-zinc-300 font-mono">{projects.length}</span>
             </p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <select
@@ -420,7 +420,7 @@ export default function Dashboard() {
         {viewMode === "cards" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredProjects.map((p) => {
-              const projectStats = stats?.find(s => s.id === p.id);
+              const projectStats = stats?.find(s => s.fullName === p.fullName);
               return (
                 <div
                   key={p.id}
@@ -515,7 +515,7 @@ export default function Dashboard() {
                 </thead>
                 <tbody className="divide-y divide-zinc-800/50">
                   {filteredProjects.map((p) => {
-                    const projectStats = stats?.find(s => s.id === p.id);
+                    const projectStats = stats?.find(s => s.fullName === p.fullName);
                     return (
                       <tr
                         key={p.id}
@@ -576,8 +576,8 @@ export default function Dashboard() {
                 key={opt.label}
                 onClick={() => handlePeriodChange(opt.days)}
                 className={`px-4 py-2 text-xs font-medium rounded-lg transition-all cursor-pointer ${commitPeriod === opt.days
-                    ? "bg-gradient-to-r from-[#57e071] to-[#3fa855] text-black shadow-lg"
-                    : "text-zinc-500 hover:text-white hover:bg-zinc-800"
+                  ? "bg-gradient-to-r from-[#57e071] to-[#3fa855] text-black shadow-lg"
+                  : "text-zinc-500 hover:text-white hover:bg-zinc-800"
                   }`}
               >
                 {opt.label}
