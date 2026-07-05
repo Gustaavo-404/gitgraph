@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import { generatePdfHtml } from '@/components/reports/PdfTemplate';
 import fs from 'fs/promises';
 import path from 'path';
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function GET(
   request: NextRequest,
@@ -53,22 +57,15 @@ export async function GET(
 
     // Gerar PDF com margens zero
     const browser = await puppeteer.launch({
+      executablePath: await chromium.executablePath(),
       headless: true,
-      dumpio: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-zygote",
-        "--single-process",
-      ],
+      args: chromium.args,
     });
 
     const page = await browser.newPage();
     await page.setViewport({ width: 1200, height: 800 });
     await page.setContent(fullHtml, {
-      waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
+      waitUntil: 'load',
     });
 
     const pdfBuffer = await page.pdf({
