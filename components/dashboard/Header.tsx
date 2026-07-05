@@ -64,13 +64,28 @@ export function DashboardHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Escuta sinal global para abrir as configurações (vindo do Sidebar)
+  // Escuta sinais globais para abrir os modais (vindo da Sidebar/Busca)
   useEffect(() => {
     const handleOpenSettings = () => {
       setIsSettingsOpen(true);
     };
+    const handleOpenProfile = () => {
+      setIsProfileModalOpen(true);
+      setShowDeleteConfirm(false);
+    };
+    const handleOpenShortcuts = () => {
+      setIsShortcutsOpen(true);
+    };
+
     window.addEventListener("open-settings-modal", handleOpenSettings);
-    return () => window.removeEventListener("open-settings-modal", handleOpenSettings);
+    window.addEventListener("open-profile-modal", handleOpenProfile);
+    window.addEventListener("open-shortcuts-modal", handleOpenShortcuts);
+
+    return () => {
+      window.removeEventListener("open-settings-modal", handleOpenSettings);
+      window.removeEventListener("open-profile-modal", handleOpenProfile);
+      window.removeEventListener("open-shortcuts-modal", handleOpenShortcuts);
+    };
   }, []);
 
   // Sincroniza estados do LocalStorage ao abrir as configurações
@@ -577,7 +592,7 @@ export function DashboardHeader() {
                 </div>
               </div>
 
-              {/* Ajuste de Preferência 2: Período de Commits (Removido 90D para sincronizar com o Dashboard) */}
+              {/* Ajuste de Preferência 2: Período de Commits */}
               <div className="space-y-2.5">
                 <span className="text-[10px] uppercase text-zinc-600 font-mono tracking-wider flex items-center gap-1.5">
                   <Calendar className="w-3 h-3 text-[#57e071]" />

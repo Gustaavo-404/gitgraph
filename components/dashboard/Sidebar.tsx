@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { FaPlug, FaCog, FaDatabase, FaGithub, FaLink, FaFileExport } from "react-icons/fa";
+import { FaPlug, FaCog, FaDatabase, FaGithub, FaFileExport } from "react-icons/fa";
 import { LuPanelLeftClose, LuPanelLeftOpen, LuLayoutDashboard } from "react-icons/lu";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Command, Search, HelpCircle, BookOpen, LifeBuoy, History, Keyboard, User, Settings as SettingsIcon, ChevronRight, ChevronLeft } from "lucide-react";
+import { Command, Search, HelpCircle, BookOpen, LifeBuoy, History, Keyboard, User, ChevronRight, ChevronLeft } from "lucide-react";
 import { useProjects } from "@/lib/hooks/useProjects";
 
 const iconMap = {
@@ -27,12 +27,11 @@ const staticSearchItems = [
   { title: "Dashboard", href: "/dashboard", icon: iconMap.dashboard, keywords: ["home", "main"] },
   { title: "Nodes Manager", href: "/dashboard/nodes", icon: iconMap.nodes, keywords: ["nodes", "database"] },
   { title: "Connect Repo", href: "/dashboard/connect", icon: iconMap.connect, keywords: ["github", "connect", "repo"] },
-  { title: "Profile", href: "/profile", icon: iconMap.profile, keywords: ["user", "account"] },
+  { title: "Profile", href: "#", icon: iconMap.profile, keywords: ["user", "account"], action: "profile" },
   { title: "Documentation", href: "/docs", icon: iconMap.documentation, keywords: ["docs", "guide"] },
-  { title: "Support", href: "/support", icon: iconMap.support, keywords: ["help", "contact"] },
-  { title: "Changelog", href: "/changelog", icon: iconMap.changelog, keywords: ["updates", "release"] },
-  { title: "Keyboard Shortcuts", href: "/shortcuts", icon: iconMap.shortcuts, keywords: ["hotkeys", "keys"] },
-  { title: "Export Metrics", href: "/dashboard/export-metrics", icon: iconMap.export, keywords: ["export", "metrics", "csv"] },
+  { title: "Support", href: "/docs?cat=about", icon: iconMap.support, keywords: ["help", "contact"] },
+  { title: "Changelog", href: "/docs?cat=changelog", icon: iconMap.changelog, keywords: ["updates", "release"] },
+  { title: "Keyboard Shortcuts", href: "#", icon: iconMap.shortcuts, keywords: ["hotkeys", "keys"], action: "shortcuts" },
 ];
 
 export function Sidebar() {
@@ -47,7 +46,7 @@ export function Sidebar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { data: projects, isLoading } = useProjects();
+  const { data: projects } = useProjects();
 
   useEffect(() => {
     setMobileOpen(false);
@@ -62,6 +61,15 @@ export function Sidebar() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Handler para os disparos de ações dos modais
+  const handleAction = (action: string) => {
+    if (action === "profile") {
+      window.dispatchEvent(new Event("open-profile-modal"));
+    } else if (action === "shortcuts") {
+      window.dispatchEvent(new Event("open-shortcuts-modal"));
+    }
+  };
 
   // --- HOTKEYS ---
   useEffect(() => {
@@ -160,7 +168,11 @@ export function Sidebar() {
     } else if (e.key === "Enter" && selectedIndex >= 0) {
       e.preventDefault();
       const selected = filteredResults[selectedIndex];
-      router.push(selected.href);
+      if (selected.action) {
+        handleAction(selected.action);
+      } else {
+        router.push(selected.href);
+      }
       setShowDropdown(false);
       setSearchQuery("");
       inputRef.current?.blur();
@@ -305,6 +317,35 @@ export function Sidebar() {
                   {filteredResults.map((result, index) => {
                     const Icon = result.icon;
                     const isSelected = index === selectedIndex;
+                    const isAction = !!result.action;
+
+                    const handleClick = (e: React.MouseEvent) => {
+                      if (isAction) {
+                        e.preventDefault();
+                        handleAction(result.action);
+                      }
+                      setShowDropdown(false);
+                      setSearchQuery("");
+                    };
+
+                    if (isAction) {
+                      return (
+                        <button
+                          key={result.title}
+                          onClick={handleClick}
+                          className={`
+                            w-full flex items-center gap-3 px-3 py-2 text-sm text-left cursor-pointer
+                            ${isSelected ? "bg-white/[0.06] text-white" : "text-zinc-400 hover:bg-white/[0.03] hover:text-white"}
+                            transition-colors
+                          `}
+                          onMouseEnter={() => setSelectedIndex(index)}
+                        >
+                          <Icon className="w-4 h-4 shrink-0 text-zinc-500" />
+                          <span className="truncate flex-1">{result.title}</span>
+                        </button>
+                      );
+                    }
+
                     return (
                       <Link
                         key={result.href}
@@ -314,10 +355,7 @@ export function Sidebar() {
                           ${isSelected ? "bg-white/[0.06] text-white" : "text-zinc-400 hover:bg-white/[0.03] hover:text-white"}
                           transition-colors
                         `}
-                        onClick={() => {
-                          setShowDropdown(false);
-                          setSearchQuery("");
-                        }}
+                        onClick={handleClick}
                         onMouseEnter={() => setSelectedIndex(index)}
                       >
                         <Icon className="w-4 h-4 shrink-0 text-zinc-500" />
@@ -398,7 +436,7 @@ export function Sidebar() {
         {/* FOOTER */}
         <div className="flex flex-col gap-4 mt-auto">
           <nav className="flex flex-col gap-1">
-            {/* O item Settings agora dispara o modal global em vez de navegar */}
+            {/* O item Settings dispara o modal global */}
             {item("#", "Settings", FaCog, "S", () => {
               window.dispatchEvent(new Event("open-settings-modal"));
             })}
