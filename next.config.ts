@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["avatars.githubusercontent.com"],
   },
+
+  serverExternalPackages: [
+    "@sparticuz/chromium",
+    "puppeteer-core",
+  ],
 };
 
 export default nextConfig;
