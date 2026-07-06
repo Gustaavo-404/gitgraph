@@ -67,4 +67,19 @@ model Project {
   fullName    String
 
   createdAt   DateTime @default(now())
+
+  analytics   RepositoryAnalytics[]
+}
+
+model RepositoryAnalytics {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  status      String
+  reportJson  Json
+  pdfUrl      String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

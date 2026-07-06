@@ -174,26 +174,60 @@ export default function ReportsClient({ projectId }: { projectId: string }) {
   const handlePdfDownload = async () => {
     setIsPdfGenerating(true);
     try {
-      const response = await fetch(`/api/github/repo/${projectId}/reports/pdf`);
+      // 1. Dispara a geração assíncrona na fila usando POST
+      const response = await fetch(`/api/github/repo/${projectId}/reports/pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.details || 'Failed to generate PDF');
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `github-report-${projectId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Lê a resposta inicial de sucesso (status PENDING)
+      await response.json();
+      console.log("🚀 Geração iniciada! Verificando status com o Worker...");
+
+      // 2. Cria um intervalo para consultar se o Worker já terminou (Polling)
+      const interval = setInterval(async () => {
+        try {
+          // Faz um GET na mesma rota para checar o status atualizado no banco
+          const checkResponse = await fetch(`/api/github/repo/${projectId}/reports/pdf`);
+
+          if (!checkResponse.ok) throw new Error('Erro ao checar status do relatório');
+
+          const data = await checkResponse.json();
+
+          if (data.status === 'COMPLETED' && data.pdfUrl) {
+            clearInterval(interval);
+            setIsPdfGenerating(false);
+            console.log("🎉 PDF pronto! Iniciando download direto do S3...");
+
+            // Redireciona a janela atual para a URL. 
+            // O navegador apenas baixará o arquivo e não sairá da aplicação.
+            window.location.href = data.pdfUrl;
+          } else if (data.status === 'FAILED') {
+            // ❌ Algo deu errado no processamento do Worker
+            clearInterval(interval);
+            setIsPdfGenerating(false);
+            alert('Ocorreu um erro no processamento do PDF pelo Worker.');
+          } else {
+            // ⏳ Continua PENDING, aguarda a próxima volta do setInterval
+            console.log("⏳ Worker processando o PDF... Aguardando.");
+          }
+        } catch (checkError) {
+          console.error('Erro durante a checagem de status:', checkError);
+          // Opcional: Você pode optar por limpar o intervalo aqui se não quiser que continue tentando em caso de erro de rede
+        }
+      }, 2000); // Executa a checagem a cada 2 segundos (2000ms)
+
     } catch (error) {
-      console.error('Error downloading PDF:', error);
-      alert('Erro ao gerar PDF. Tente novamente.');
-    } finally {
-      setIsPdfGenerating(false);
+      console.error('Error initiating PDF generation:', error);
+      alert('Erro ao iniciar a geração do PDF. Tente novamente.');
+      setIsPdfGenerating(false); // Garante que desativa o loading se falhar o disparo inicial
     }
   };
 

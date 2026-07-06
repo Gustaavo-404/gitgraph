@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
-import { generatePdfHtml } from '@/components/reports/PdfTemplate';
-import fs from 'fs/promises';
-import path from 'path';
+import { prisma } from '@/lib/prisma'; 
+import amqp from 'amqplib';
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-export async function GET(
+// 1. DISPARA A GERAÇÃO EM SEGUNDO PLANO (Sua rota atual)
+export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -16,88 +14,113 @@ export async function GET(
     const { id } = await params;
     const projectId = id;
 
-    // Buscar dados do relatório
+    // 1. BUSCAR DADOS DO RELATÓRIO DO GITHUB
     const baseUrl = new URL(request.url).origin;
     const reportsUrl = `${baseUrl}/api/github/repo/${projectId}/reports`;
     const cookieHeader = request.headers.get('cookie');
+    
     const fetchOptions: RequestInit = {
       cache: 'no-store',
       headers: cookieHeader ? { cookie: cookieHeader } : undefined,
     };
+    
     const res = await fetch(reportsUrl, fetchOptions);
     if (!res.ok) {
-      throw new Error(`Failed to fetch report: ${res.status} ${res.statusText}`);
+      throw new Error(`Failed to fetch report metrics: ${res.status} ${res.statusText}`);
     }
     const report = await res.json();
 
-    // Carregar logo como base64 (fallback para placeholder)
-    let logoDataUrl = '';
-    try {
-      const logoPath = path.join(process.cwd(), 'public', 'logo.png');
-      const logoBuffer = await fs.readFile(logoPath);
-      logoDataUrl = `data:image/png;base64,${logoBuffer.toString('base64')}`;
-    } catch (error) {
-      console.warn('Logo not found, using placeholder');
+    // 2. SALVAR NO BANCO COM STATUS 'PENDING'
+    const analytics = await prisma.repositoryAnalytics.create({
+      data: {
+        projectId,
+        status: 'PENDING',
+        reportJson: report, 
+      },
+    });
+
+    // 3. CONECTAR AO CLOUDAMQP E ENVIAR PARA A FILA
+    const queueUrl = process.env.QUEUE_URL;
+    if (!queueUrl) {
+      throw new Error("QUEUE_URL não encontrada nas variáveis de ambiente (.env)");
     }
 
-    // Data de geração
-    const generatedAt = new Date().toLocaleString('en-US', {
-      timeZone: 'America/Sao_Paulo',
-      dateStyle: 'full',
-      timeStyle: 'short',
-    });
+    const connection = await amqp.connect(queueUrl);
+    const channel = await connection.createChannel();
+    
+    const queueName = 'gitgraph_pdf_queue';
 
-    // Gerar HTML
-    const fullHtml = generatePdfHtml({
-      report,
-      projectId,
-      generatedAt,
-      logoUrl: logoDataUrl,
-    });
+    // Garante que a fila existe no RabbitMQ
+    await channel.assertQueue(queueName, { durable: true });
 
-    // Gerar PDF com margens zero
-    const browser = await puppeteer.launch({
-      executablePath: await chromium.executablePath(),
-      headless: true,
-      args: chromium.args,
-    });
+    const queuePayload = {
+      analyticsId: analytics.id,
+      projectId: projectId,
+    };
 
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1200, height: 800 });
-    await page.setContent(fullHtml, {
-      waitUntil: 'load',
-    });
+    // Despacha para a fila
+    channel.sendToQueue(
+      queueName, 
+      Buffer.from(JSON.stringify(queuePayload)), 
+      { persistent: true } 
+    );
 
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '0px',
-        right: '0px',
-        bottom: '0px',
-        left: '0px',
+    await channel.close();
+    await connection.close();
+
+    console.log(`🚀 [Next.js] Evento enviado para a fila. Analytics ID: ${analytics.id}`);
+
+    // 4. RETORNA RESPOSTA IMEDIATA PARA O FRONT-END
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Geração do relatório iniciada em background.',
+        analyticsId: analytics.id,
+        status: 'PENDING',
       },
-      preferCSSPageSize: true,
+      { status: 202 } 
+    );
+
+  } catch (error) {
+    console.error('Error starting async PDF generation:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to initiate report generation',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// 2. NOVA ROTA: CONSULTA O STATUS DO PDF (Adicionado para resolver o erro)
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    
+    // Pega o relatório mais recente desse projeto no banco
+    const analytics = await prisma.repositoryAnalytics.findFirst({
+      where: { projectId: id },
+      orderBy: { createdAt: 'desc' }
     });
 
-    await browser.close();
+    if (!analytics) {
+      return NextResponse.json({ error: 'Relatório não encontrado' }, { status: 404 });
+    }
 
-    const pdf = Buffer.from(pdfBuffer);
-
-    return new NextResponse(pdf, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="gitgraph-report-${projectId}.pdf"`,
-      },
+    // Retorna se está PENDING, COMPLETED ou FAILED, junto com a URL se já tiver sido gerada
+    return NextResponse.json({
+      status: analytics.status,
+      pdfUrl: analytics.pdfUrl 
     });
 
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    console.error('Error checking PDF status:', error);
     return NextResponse.json(
-      {
-        error: 'Failed to generate PDF',
-        details: error instanceof Error ? error.message : String(error),
-      },
+      { error: 'Failed to check status' },
       { status: 500 }
     );
   }
