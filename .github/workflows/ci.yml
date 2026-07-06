@@ -19,6 +19,7 @@ jobs:
       NEXTAUTH_URL: http://localhost:3000
       GITHUB_ID: ${{ secrets.AUTH_GITHUB_ID }}
       GITHUB_SECRET: ${{ secrets.AUTH_GITHUB_SECRET }}
+      QUEUE_URL: ${{ secrets.QUEUE_URL }}
 
     steps:
       - name: Checkout repository
