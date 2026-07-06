@@ -122,7 +122,7 @@ export function Hero() {
           playsInline
           className="h-full w-full object-cover object-[center_30%] md:object-[center_10%]"
         >
-          <source src="/herovid.mp4" type="video/mp4" />
+          <source src="/vidhero.mp4" type="video/mp4" />
         </video>
       </div>
 
@@ -171,12 +171,15 @@ export function Hero() {
               </span>
             </Link>
 
-            <button className="group relative flex items-center justify-center rounded-full border border-white/40 bg-black sm:bg-transparent px-6 py-2.5 sm:px-8 sm:py-3 text-white font-medium text-sm sm:text-base overflow-hidden hover:border-white cursor-pointer text-center">
+            <Link
+              href="/docs"
+              className="group relative flex items-center justify-center rounded-full border border-white/40 bg-black sm:bg-transparent px-6 py-2.5 sm:px-8 sm:py-3 text-white font-medium text-sm sm:text-base overflow-hidden hover:border-white cursor-pointer text-center"
+            >
               <span className="absolute bottom-0 left-0 w-0 h-0 rounded-full bg-white transition-all duration-600 ease-out group-hover:w-[500px] group-hover:h-[500px] group-hover:-bottom-40 group-hover:-left-40" />
               <span className="relative z-10 transition-colors duration-300 group-hover:text-black">
                 Read the docs
               </span>
-            </button>
+            </Link>
           </div>
 
         </div>
