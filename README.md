@@ -4,12 +4,14 @@
 
 # GitGraph
 
-**Modern SaaS platform for analyzing repository health, tracking development metrics, and generating actionable insights for engineering teams. GitGraph is written in Typescript, React/Next.js and PostgreSQL**
+**Modern SaaS platform for analyzing repository health, tracking development metrics, and generating actionable insights for engineering teams. GitGraph is written in TypeScript, React/Next.js and PostgreSQL**
+
+**Live at [gitgraph.com.br](https://gitgraph.com.br)**
 
 ![Build Status](https://img.shields.io/badge/build-passing-00C49F)
 ![Version](https://img.shields.io/badge/version-0.1.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-active-success)
+![Status](https://img.shields.io/badge/status-live-success)
 
 </div>
 
@@ -57,6 +59,15 @@ GitGraph was built using a modern full-stack architecture focused on performance
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 ![GitHub OAuth](https://img.shields.io/badge/GitHub_OAuth-181717?style=for-the-badge&logo=github&logoColor=white)
 
+### Infrastructure & Async Processing
+
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![Neon](https://img.shields.io/badge/Neon_PostgreSQL-00E599?style=for-the-badge&logo=postgresql&logoColor=black)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ_(CloudAMQP)-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
+![AWS S3](https://img.shields.io/badge/AWS_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
+![Render](https://img.shields.io/badge/Render_(Worker)-46E3B7?style=for-the-badge&logo=render&logoColor=white)
+![Puppeteer](https://img.shields.io/badge/Puppeteer-40B5A4?style=for-the-badge)
+
 ### Data & Analytics
 
 ![AI Analysis](https://img.shields.io/badge/AI_Analysis-FF6B6B?style=for-the-badge)
@@ -65,10 +76,44 @@ GitGraph was built using a modern full-stack architecture focused on performance
 
 ### Export & Reports
 
-![Puppeteer](https://img.shields.io/badge/Puppeteer-40B5A4?style=for-the-badge)
 ![PDF Export](https://img.shields.io/badge/PDF_Export-E34F26?style=for-the-badge)
 ![CSV Export](https://img.shields.io/badge/CSV_Export-2ECC71?style=for-the-badge)
 ![JSON Export](https://img.shields.io/badge/JSON_Export-000000?style=for-the-badge)
+
+---
+
+# ⚓ Architecture
+
+GitGraph runs on an **event-driven, decoupled architecture** for its heaviest operation — PDF report generation — while keeping repository analysis and health score calculation synchronous and fast.
+
+- **Frontend & API** — Next.js (App Router) deployed on **Vercel**, handling UI, authentication, repository analysis, and health score calculation directly through API routes.
+- **Database** — **Neon PostgreSQL** accessed via **Prisma ORM**, storing repository metadata, health scores, and user data.
+- **Async PDF Generation** — when a user requests a **PDF report**, the job is published to a **RabbitMQ** queue (hosted on **CloudAMQP**) instead of being generated synchronously, decoupling the frontend from the heavier headless-browser work and avoiding request timeouts. CSV and JSON exports are generated directly by the API, since they don't require Puppeteer.
+- **Worker** — a persistent Node.js worker, hosted on **Render**, consumes the PDF generation queue asynchronously and manages the full lifecycle of headless **Puppeteer** sessions to render the report. Running the worker on Render (instead of serverless) avoids the timeout and memory limitations of typical serverless functions for this kind of long-running job. Worker source and setup instructions live in a separate repository: [**gitgraph-worker**](https://github.com/Gustaavo-404/gitgraph-worker).
+- **Report Storage** — generated PDF reports (along with CSV/JSON exports) are stored on **Amazon S3** via the AWS SDK, reducing database load and data transfer costs.
+
+```
+Frontend (Next.js, App Router) — Vercel
+│
+├── Authentication (GitHub OAuth)
+├── Repository Dashboard & Visualizations (D3)
+├── Repository Analytics Engine (synchronous)
+├── Health Score Calculation (synchronous)
+└── CSV / JSON Export (synchronous)
+        │
+        │  (PDF report requested)
+        ▼
+   RabbitMQ Queue (CloudAMQP)
+        │
+        ▼
+Worker (Node.js, persistent) — Render
+└── PDF Report Generation (Puppeteer, headless)
+        │
+        ▼
+   Amazon S3 (PDF / CSV / JSON exports)
+
+Database Layer — Neon PostgreSQL + Prisma ORM
+```
 
 ---
 
@@ -78,7 +123,7 @@ Users begin by connecting their GitHub profile securely using OAuth authenticati
 
 <img src="public/steps/step1.png" width="900"/>
 
-> **Start by connecting your GitHub profile.**  
+> **Start by connecting your GitHub profile.**
 > GitGraph uses this connection to access your repositories and provide a personalized analysis of your development workflow.
 
 ---
@@ -95,7 +140,7 @@ Choose which repositories should be monitored.
 
 ## 3️⃣ AI Repository Analysis
 
-GitGraph scans the selected repository and calculates the **Health Score**.
+GitGraph analyzes the selected repository synchronously and calculates the **Health Score**.
 
 <img src="public/steps/step3.png" width="900"/>
 
@@ -122,7 +167,7 @@ Insights are categorized by severity so developers can quickly prioritize improv
 
 ## 5️⃣ Reports & Export
 
-Repositories can be analyzed through comprehensive reports and exported for external use.
+Repositories can be analyzed through comprehensive reports and exported for external use. Reports are generated by the worker and stored on Amazon S3.
 
 <img src="public/steps/step5.png" width="900"/>
 
@@ -155,6 +200,8 @@ Install dependencies:
 npm install
 ```
 
+> **Note:** GitGraph's asynchronous analysis relies on a separate worker service that consumes the RabbitMQ queue and generates reports. See [**gitgraph-worker**](https://github.com/Gustaavo-404/gitgraph-worker) for its own setup and initialization steps.
+
 ---
 
 # ⚙️ Environment Variables
@@ -163,15 +210,23 @@ Create a `.env` file in the root directory.
 
 Example configuration:
 
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/gitgraph"
+```dotenv
+# Database
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
 
-GITHUB_CLIENT_ID=""
-GITHUB_CLIENT_SECRET=""
+# GitHub OAuth
+GITHUB_ID="your_github_client_id"
+GITHUB_SECRET="your_github_client_secret"
 
-NEXTAUTH_SECRET=""
+# NextAuth
 NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your_nextauth_secret"
+
+# RabbitMQ
+QUEUE_URL="amqps://user:password@instance.rmq.cloudamqp.com/vhost"
 ```
+
+`DATABASE_URL` points to your Neon PostgreSQL instance in production, or a local PostgreSQL instance for development. `QUEUE_URL` connects to the CloudAMQP RabbitMQ instance shared with the worker — both services must point to the same queue.
 
 ---
 
@@ -219,6 +274,8 @@ http://localhost:3000
 
 The application will automatically reload when changes are made.
 
+> For local end-to-end analysis, the [**gitgraph-worker**](https://github.com/Gustaavo-404/gitgraph-worker) also needs to be running and pointed at the same `QUEUE_URL`.
+
 ---
 
 # 📊 Key Features
@@ -235,24 +292,9 @@ The application will automatically reload when changes are made.
 
 - **Developer Insights** – Understand contributor activity, team participation, and approximate development lead time.
 
-- **Exportable Reports** – Generate downloadable analytics reports in **PDF, CSV, and JSON** formats.
+- **Asynchronous, Non-Blocking Analysis** – Heavy analysis jobs run on a dedicated worker via RabbitMQ, keeping the interface responsive with instant feedback instead of timeouts.
 
----
-
-# 🧱 Architecture
-
-GitGraph follows a modular architecture.
-
-```
-Next.js (App Router)
-│
-├── Authentication (GitHub OAuth)
-├── Repository Analytics Engine
-├── Metrics Processing
-├── Visualization Layer (D3)
-├── Export Engine (Puppeteer)
-└── Database Layer (Prisma + PostgreSQL)
-```
+- **Exportable Reports** – Generate downloadable analytics reports in **PDF, CSV, and JSON** formats, stored on Amazon S3.
 
 ---
 
