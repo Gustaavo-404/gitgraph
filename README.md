@@ -9,7 +9,7 @@
 **Live at [gitgraph.com.br](https://gitgraph.com.br)**
 
 ![Build Status](https://img.shields.io/badge/build-passing-00C49F)
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-live-success)
 
